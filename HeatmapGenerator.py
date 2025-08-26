@@ -9,7 +9,7 @@ import time
 import concurrent.futures
 
 
-mp.dps = 100
+mp.dps = 500
 
 Dg=2
 De=2
