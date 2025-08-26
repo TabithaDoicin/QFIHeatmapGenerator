@@ -7,7 +7,8 @@ import scipy as sp
 import pandas as pd
 import time
 import concurrent.futures
-
+from concurrent.futures import ProcessPoolExecutor, as_completed
+import os
 
 mp.dps = 2000
 
@@ -133,6 +134,14 @@ def generate_subdataframe(totallines):
     
     return pd.concat(df_parts, ignore_index=True)
 
+def populate_dataframes_parallel_cpu(totallines, totalsets):
+    bigset = []
+    with ProcessPoolExecutor(max_workers=8) as ex:
+        futures = [ex.submit(generate_subdataframe, totallines) for _ in range(totalsets)]
+        for fut in as_completed(futures):
+            bigset.append(fut.result())
+    return bigset
+
 def populate_dataframes_parallel(totallines, totalsets):
     bigset = []
     with concurrent.futures.ThreadPoolExecutor() as executor:
@@ -148,7 +157,7 @@ def populate_dataframes_parallel(totallines, totalsets):
 def main():
     print(mp)
     print("Creating dataframe...")
-    bigset = populate_dataframes_parallel(totallines, totalsets)
+    bigset = populate_dataframes_parallel_cpu(totallines, totalsets)
     qfidf = pd.concat(bigset, ignore_index=True)  
     qfidf.to_csv('qfidataframe.csv', index=False)
     print('done :)')
