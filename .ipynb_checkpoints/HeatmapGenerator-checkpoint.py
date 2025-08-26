@@ -11,8 +11,8 @@ import concurrent.futures
 
 mp.dps = 1000
 
-Dg=2
-De=2
+Dg=10
+De=10
 
 wc = 1
 wa = 0.5
@@ -21,8 +21,8 @@ minT=1e-100
 maxT=1e3
 numT=200
 
-totallines=100
-totalsets=20
+totallines=50
+totalsets=10
 
 
 
