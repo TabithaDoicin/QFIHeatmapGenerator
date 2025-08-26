@@ -17,12 +17,12 @@ De=2
 wc = 1
 wa = 0.5
 
-minT=1e-6
-maxT=10
-numT=100
+minT=1e-10
+maxT=1e2
+numT=150
 
 totallines=10
-totalsets=4
+totalsets=10
 
 
 
