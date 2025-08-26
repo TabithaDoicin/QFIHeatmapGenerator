@@ -15,7 +15,7 @@ Dg=2
 De=2
 
 wc = 1
-wa = 0.25
+wa = 0.5
 
 minT=1e-6
 maxT=10
