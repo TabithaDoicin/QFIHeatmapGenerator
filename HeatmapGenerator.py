@@ -3,9 +3,11 @@ from mpmath import mp
 import mpmath
 import sys as s
 import numpy as np
+import scipy as sp
 import pandas as pd
 import time
 import concurrent.futures
+
 
 mp.dps = 500
 
