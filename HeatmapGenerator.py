@@ -124,9 +124,10 @@ def generate_subdataframe(totallines):
         Xq = [svd**2 for svd in Cmat.svdvals]
         sep = seperation([Xq[0]],Xq,wc,wa)
         sep_list = [sep for k in range(numT)]
+        Xq_list = [Xq for k in range(numT)]
         qfi_values = generate_qfi_list_theor2(wc, wa, Xq, Tlist)
         
-        line_df = pd.DataFrame({"Temp": Tlist, "QFI": qfi_values, "Xq":Xq, "Seperation":sep_list})
+        line_df = pd.DataFrame({"Temp": Tlist, "QFI": qfi_values, "Xq":Xq_list, "Seperation":sep_list})
         df_parts.append(line_df)
         df_parts.append(pd.DataFrame({"Temp": [np.nan], "QFI": [np.nan], "Seperation": [np.nan]}))  # separator row
     
