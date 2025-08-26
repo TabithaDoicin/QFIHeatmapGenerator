@@ -12,11 +12,11 @@ import os
 
 mp.dps = 2000
 
-Dg=10
-De=10
+Dg=2
+De=20
 
 wc = 1
-wa = 1
+wa = 0.5
 
 minT=1e-300
 maxT=1e3
