@@ -9,16 +9,16 @@ import time
 import concurrent.futures
 
 
-mp.dps = 50
+mp.dps = 100
 
-Dg=10
-De=10
+Dg=2
+De=2
 
 wc = 1
 wa = 0.25
 
-minT=1e-3
-maxT=1
+minT=1e-6
+maxT=10
 numT=100
 
 totallines=10
