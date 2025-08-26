@@ -9,7 +9,7 @@ import time
 import concurrent.futures
 
 
-mp.dps = 1000
+mp.dps = 2000
 
 Dg=3
 De=3
@@ -17,7 +17,7 @@ De=3
 wc = 1
 wa = 1
 
-minT=1e-200
+minT=1e-300
 maxT=1e3
 numT=500
 
