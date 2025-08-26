@@ -17,11 +17,11 @@ De=2
 wc = 1
 wa = 0.5
 
-minT=1e-10
-maxT=1e2
-numT=150
+minT=1e-20
+maxT=1e3
+numT=200
 
-totallines=10
+totallines=100
 totalsets=10
 
 
