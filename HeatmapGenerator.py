@@ -14,10 +14,8 @@ mp.dps = 500
 Dg=10
 De=10
 
-global wc
-global wa
-wc=1
-wa=0.5
+wc = 1
+wa = 0.25
 
 minT=1e-10
 maxT=1
@@ -28,7 +26,7 @@ totalsets=4
 
 
 
-def generate_qfi_list_theor2(Xq, Dmin=0, Dplu=0, Dk=0):
+def generate_qfi_list_theor2(wc, wa, Xq, Dmin=0, Dplu=0, Dk=0):
     M = int(np.min([Dg,De]))
     N = int(np.max([Dg,De]))
     if Dg>De:
@@ -126,7 +124,7 @@ def generate_subdataframe(totallines):
         Xq = [svd**2 for svd in Cmat.svdvals]
         sep = seperation([Xq[0]],Xq,wc,wa)
         sep_list = [sep for k in range(numT)]
-        qfi_values = generate_qfi_list_theor2(Xq)
+        qfi_values = generate_qfi_list_theor2(wc, wa, Xq)
         
         line_df = pd.DataFrame({"Temp": Tlist, "QFI": qfi_values, "Xq":Xq, "Seperation":sep_list})
         df_parts.append(line_df)
