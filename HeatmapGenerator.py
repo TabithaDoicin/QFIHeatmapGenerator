@@ -12,8 +12,8 @@ import os
 
 mp.dps = 2000
 
-Dg=2
-De=20
+Dg=10
+De=10
 
 wc = 1
 wa = 0.5
@@ -25,7 +25,7 @@ numT=500
 totallines=10
 totalsets=5
 
-
+normalised = True
 
 def generate_qfi_list_theor2(wc, wa, Xq, Tlist, Dmin=0, Dplu=0, Dk=0):
     M = int(np.min([Dg,De]))
@@ -121,7 +121,7 @@ def generate_subdataframe(totallines):
     df_parts = []
     for i in range(totallines):
         print('Progress: '+str(i/totallines))
-        Cmat=CmatRandomAF(Dg,De,False)
+        Cmat=CmatRandomAF(Dg,De,normalised)
         Xq = [svd**2 for svd in Cmat.svdvals]
         sep = seperation([Xq[0]],Xq,wc,wa)
         sep_list = [sep for k in range(numT)]
