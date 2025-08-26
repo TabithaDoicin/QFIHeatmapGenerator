@@ -18,7 +18,7 @@ De=20
 wc = 1
 wa = 0.5
 
-minT=1e-300
+minT=1e-10
 maxT=1e3
 numT=500
 
