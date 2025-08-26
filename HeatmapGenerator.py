@@ -100,7 +100,7 @@ def seperation(geff_list,Xq,wc,wa):
     seperationlist = [np.min([E21[i],E31[i]]) for i in range(len(geff_list))]
     return seperationlist[0]
 
-def generate_randomised_qfi_dataframe_unnormalised(totallines):
+def generate_subdataframe(totallines):
     Tlist = np.geomspace(minT, maxT, numT)
     df_parts = []
     for i in range(totallines):
@@ -121,7 +121,7 @@ def populate_dataframes_parallel(totallines, totalsets):
     bigset = []
     with concurrent.futures.ThreadPoolExecutor() as executor:
         # Submit tasks
-        futures = [executor.submit(create_dataframe, totallines) for _ in range(totalsets)]
+        futures = [executor.submit(generate_subdataframe, totallines) for _ in range(totalsets)]
         time.sleep(0)
         # Collect results
         for future in concurrent.futures.as_completed(futures):
