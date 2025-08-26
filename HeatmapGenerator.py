@@ -7,6 +7,8 @@ import pandas as pd
 import time
 import concurrent.futures
 
+mp.dps = 500
+
 Dg=10
 De=10
 wc=1
@@ -128,6 +130,8 @@ def populate_dataframes_parallel(totallines, totalsets):
     return bigset
 
 def main():
+    print(mp)
+    print("Creating dataframe...")
     bigset = populate_dataframes_parallel(totallines, totalsets)
     qfidf = pd.concat(bigset, ignore_index=True)  
     qfidf.to_csv('qfidataframe.csv', index=False)
