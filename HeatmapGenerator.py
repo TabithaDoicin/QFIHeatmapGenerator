@@ -15,14 +15,14 @@ Dg=3
 De=3
 
 wc = 1
-wa = 0.5
+wa = 1
 
-minT=1e-100
+minT=1e-200
 maxT=1e3
 numT=500
 
-totallines=25
-totalsets=20
+totallines=10
+totalsets=5
 
 
 
