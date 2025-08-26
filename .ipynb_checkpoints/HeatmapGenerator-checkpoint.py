@@ -100,12 +100,22 @@ def seperation(geff_list,Xq,wc,wa):
     seperationlist = [np.min([E21[i],E31[i]]) for i in range(len(geff_list))]
     return seperationlist[0]
 
+class CmatRandomAF:
+    def __init__(self, DG, DE, normalised, sd_independent=1/np.sqrt(2)):
+        self.data = np.random.normal(0,1*sd_independent,size=(DG,DE)) + 1j * np.random.normal(0,1*sd_independent,size=(DG,DE))
+        self.U, self.svdvals, self.Vt = sp.linalg.svd(self.data)
+        if normalised == True:
+            self.data = 1/self.svdvals[0]*self.data
+            self.svdvals = 1/self.svdvals[0] * self.svdvals
+        else:
+            pass
+
 def generate_subdataframe(totallines):
     Tlist = np.geomspace(minT, maxT, numT)
     df_parts = []
     for i in range(totallines):
         print('Progress: '+str(i/totallines))
-        Cmat=t.CmatRandomAF(Dg,De,False)
+        Cmat=CmatRandomAF(Dg,De,False)
         Xq = [svd**2 for svd in Cmat.svdvals]
         sep = seperation([Xq[0]],Xq,wc,wa)
         sep_list = [sep for k in range(numT)]
