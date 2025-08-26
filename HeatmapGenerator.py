@@ -13,6 +13,9 @@ mp.dps = 500
 
 Dg=10
 De=10
+
+global wc
+global wa
 wc=1
 wa=0.5
 
@@ -23,7 +26,7 @@ numT=100
 totallines=10
 totalsets=4
 
-global wc,wa
+
 
 def generate_qfi_list_theor2(Xq, Dmin=0, Dplu=0, Dk=0):
     M = int(np.min([Dg,De]))
