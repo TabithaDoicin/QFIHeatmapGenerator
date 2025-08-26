@@ -49,7 +49,7 @@ def generate_qfi_list_theor2(Xq, Dmin=0, Dplu=0, Dk=0):
         Dk = [mpf(k) for k in Dk]
     
     X = [mpf(k) for k in Xq]
-    g = mpf(geff)
+    g = mpf(Xq[0])
     wf = mpf(wc)
     wa = mpf(wa)
     T = [mpf(k) for k in Tlist]
