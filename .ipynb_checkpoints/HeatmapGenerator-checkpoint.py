@@ -9,6 +9,8 @@ import time
 import concurrent.futures
 from concurrent.futures import ProcessPoolExecutor, as_completed
 import os
+import pickle
+from pathlib import Path
 
 mp.dps = 50
 
@@ -24,6 +26,7 @@ ep2=0.05
 minT=1e-1
 maxT=1e3
 numT=350
+Tlist = np.geomspace(minT, maxT, numT)
 
 gprefactor=1
 
@@ -31,6 +34,26 @@ totallines=200
 totalsets=8
 
 normalised = False
+
+def mode_eigs_wishart(Dg, De, normalised, beta=2, c=1.0):
+    M = np.min([Dg,De])
+    N = np.max([Dg,De])
+    
+    if N==M:
+        z=np.array([0.0])
+        z_lag, _ = sp.special.roots_genlaguerre(M-1, 1.0)
+        z = np.concatenate(([0.0], z_lag))
+    else:
+        alpha = N - M - 1
+        z, _ = sp.special.roots_genlaguerre(M,alpha)
+    
+    roots_sorted = np.flip(np.sort(z))
+    if normalised ==True:
+        lambdas_mode = roots_sorted / roots_sorted[0]
+        return lambdas_mode
+    elif normalised==False:
+        lambdas_mode = roots_sorted
+        return lambdas_mode
 
 def generate_qfi_list_theor2(wc, wa, Xq, Tlist, Dmin=0, Dplu=0, Dk=0, gprefactor=1):
     M = int(np.min([Dg,De]))
@@ -139,7 +162,6 @@ def generate_detunings(ep1,ep2,wa,Dg,De,Cmat):
     return Dmin, Dplu, Dk
 
 def generate_subdataframe(totallines):
-    Tlist = np.geomspace(minT, maxT, numT)
     df_parts = []
     for i in range(totallines):
         print('Progress: '+str(i/totallines))
@@ -179,13 +201,25 @@ def populate_dataframes_parallel(totallines, totalsets):
             bigset.append(df)
     return bigset
 
+def averageqfi():
+    Xq = mode_eigs_wishart(Dg, De, normalised)
+    svddiagonals = [x**2 for x in Xq]
+    qfi = generate_qfi_list_theor2(wc, wa, Xq, Tlist, Dmin=0, Dplu=0, Dk=0, gprefactor)
+    return qfi
+
 def main():
     print(mp)
     print("Creating dataframe...")
     bigset = populate_dataframes_parallel_cpu(totallines, totalsets)
     qfidf = pd.concat(bigset, ignore_index=True)  
     qfidf.to_csv('qfidataframe.csv', index=False)
-    print('done :)')
-
+    print('done biggy one :)')
+    print('Starting average one...')
+    avgqfi = averageqfi()
+    with Path("avgqfi.pkl").open("wb") as f:
+        pickle.dump(avgqfi, f, protocol=pickle.HIGHEST_PROTOCOL)
+    with Path("tlist.pkl").open("wb") as f:
+        pickle.dump(Tlist, f, protocol=pickle.HIGHEST_PROTOCOL)
+    print('Finito!')
 if __name__ == '__main__':
     main()
