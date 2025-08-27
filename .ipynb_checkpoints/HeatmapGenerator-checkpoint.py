@@ -97,7 +97,7 @@ def generate_qfi_list_theor2(wc, wa, Xq, Tlist, Dmin=0, Dplu=0, Dk=0):
         QFIlist1[t] = S1/Z
         QFIlist2[t] = S2/Z
         QFIlist3[t] = -(S3*S3)/(Z*Z)
-        QFI[t] = float(mpmath.log10(QFIlist1[t] + QFIlist2[t] + QFIlist3[t]) - mpf(4)*mpmath.log10(T[t]))
+        QFI[t] = float( (QFIlist1[t] + QFIlist2[t] + QFIlist3[t])/(mpmath.power(T[t],4)) )
     return QFI
 
 def seperation(geff_list,Xq,wc,wa):
