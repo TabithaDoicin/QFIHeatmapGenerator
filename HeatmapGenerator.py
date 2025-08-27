@@ -204,7 +204,7 @@ def populate_dataframes_parallel(totallines, totalsets):
 def averageqfi():
     Xq = mode_eigs_wishart(Dg, De, normalised)
     svddiagonals = [x**2 for x in Xq]
-    qfi = generate_qfi_list_theor2(wc, wa, Xq, Tlist, Dmin=0, Dplu=0, Dk=0, gprefactor)
+    qfi = generate_qfi_list_theor2(wc, wa, Xq, Tlist, Dmin=0, Dplu=0, Dk=0, gprefactor=gprefactor)
     return qfi
 
 def main():
