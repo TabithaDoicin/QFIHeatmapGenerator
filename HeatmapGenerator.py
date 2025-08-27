@@ -12,8 +12,8 @@ import os
 
 mp.dps = 50
 
-Dg=2
-De=2
+Dg=100
+De=100
 
 wc = 1
 wa = 0.5
