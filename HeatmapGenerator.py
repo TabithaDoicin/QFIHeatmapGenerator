@@ -206,7 +206,7 @@ def averageqfis():
     svddiagonals = [x**0.5 for x in Xq]
     avgqfi = generate_qfi_list_theor2(wc, wa, Xq, Tlist, Dmin=0, Dplu=0, Dk=0, gprefactor=gprefactor)
     sep = seperation([gprefactor],Xq,wc,wa)
-    avgqfi2ls = [sep**2/(4*t**4) * np.sech(sep/(2*t))**2 for t in Tlist]
+    avgqfi2ls = [sep**2/(4*t**4) * np.cosh(sep/(2*t))**-2 for t in Tlist]
     return qfi, avgqfi2ls
 
 def main():
