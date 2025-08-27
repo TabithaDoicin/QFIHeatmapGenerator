@@ -119,6 +119,25 @@ class CmatRandomAF:
         else:
             pass
 
+def generate_detunings(ep1,ep2,wa,Dg,De):
+    M = int(np.min([Dg,De]))
+    N = int(np.max([Dg,De]))
+    delta_g = np.random.normal(0, ep1*wa/2, size=(1, Dg))[0]
+    delta_e = np.random.normal(0, ep2*wa/2, size=(1, De))[0]
+    Delta_g = [sum([delta_g[k]*np.abs(Cmat.U[k,j])**2 for k in range(Dg)]) for j in range(Dg)]
+    Delta_e = [sum([delta_e[k]*np.abs(Cmat.Vt[k,j])**2 for k in range(De)]) for j in range(De)]
+    Dmin = [Delta_e[i]-Delta_g[i] for i in range(M)]
+    Dplu = [Delta_e[i]+Delta_g[i] for i in range(M)]
+
+    if Dg>De:
+        Dk = [Delta_g[i] for i in range(M,N))]
+    elif De>Dg:
+        Dk = [Delta_e[i] for i in range(M,N))]
+    else:
+        pass
+
+    return Dmin, Dplu, Dk
+
 def generate_subdataframe(totallines):
     Tlist = np.geomspace(minT, maxT, numT)
     df_parts = []
@@ -129,8 +148,10 @@ def generate_subdataframe(totallines):
         #sep = seperation([Xq[0]],Xq,wc,wa)
         #sep_list = [sep for k in range(numT)]
         #Xq_list = [Xq for k in range(numT)]
+
+        Dmin, Dplu, Dk = generate_detunings(ep1,ep2,wa,Dg,De)
         
-        qfi_values = generate_qfi_list_theor2(wc, wa, Xq, Tlist)
+        qfi_values = generate_qfi_list_theor2(wc, wa, Xq, Tlist, Dmin, Dplu, Dk)
         
         line_df = pd.DataFrame({"Temp": Tlist, "QFI": qfi_values})#, "Xq":Xq_list, "Seperation":sep_list})
         df_parts.append(line_df)
