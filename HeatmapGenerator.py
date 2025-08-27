@@ -121,7 +121,7 @@ class CmatRandomAF:
         else:
             pass
 
-def generate_detunings(ep1,ep2,wa,Dg,De):
+def generate_detunings(ep1,ep2,wa,Dg,De,Cmat):
     M = int(np.min([Dg,De]))
     N = int(np.max([Dg,De]))
     delta_g = np.random.normal(0, ep1*wa/2, size=(1, Dg))[0]
@@ -151,7 +151,7 @@ def generate_subdataframe(totallines):
         #sep_list = [sep for k in range(numT)]
         #Xq_list = [Xq for k in range(numT)]
 
-        Dmin, Dplu, Dk = generate_detunings(ep1,ep2,wa,Dg,De)
+        Dmin, Dplu, Dk = generate_detunings(ep1,ep2,wa,Dg,De,Cmat)
         
         qfi_values = generate_qfi_list_theor2(wc, wa, Xq, Tlist, Dmin, Dplu, Dk, gprefactor)
         
