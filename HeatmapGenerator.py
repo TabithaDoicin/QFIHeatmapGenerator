@@ -132,9 +132,9 @@ def generate_detunings(ep1,ep2,wa,Dg,De):
     Dplu = [Delta_e[i]+Delta_g[i] for i in range(M)]
 
     if Dg>De:
-        Dk = [Delta_g[i] for i in range(M,N))]
+        Dk = [Delta_g[i] for i in range(M,N)]
     elif De>Dg:
-        Dk = [Delta_e[i] for i in range(M,N))]
+        Dk = [Delta_e[i] for i in range(M,N)]
     else:
         pass
 
