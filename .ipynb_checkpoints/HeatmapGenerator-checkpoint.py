@@ -12,8 +12,8 @@ import os
 
 mp.dps = 50
 
-Dg=100
-De=100
+Dg=10
+De=10
 
 wc = 1
 wa = 0.25
@@ -21,9 +21,9 @@ wa = 0.25
 ep1=0.05
 ep2=0.05
 
-minT=1e-7
-maxT=1e7
-numT=500
+minT=1e-1
+maxT=1e3
+numT=350
 
 gprefactor=1
 
