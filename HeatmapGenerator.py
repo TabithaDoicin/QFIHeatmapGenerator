@@ -14,8 +14,8 @@ from pathlib import Path
 
 mp.dps = 50
 
-Dg=50
-De=50
+Dg=100
+De=100
 
 wc = 1
 wa = 0.25
@@ -30,7 +30,7 @@ Tlist = np.geomspace(minT, maxT, numT)
 
 gprefactor=1
 
-totallines=200
+totallines=500
 totalsets=8
 
 normalised = False
