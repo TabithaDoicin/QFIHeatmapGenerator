@@ -130,14 +130,12 @@ def generate_detunings(ep1,ep2,wa,Dg,De,Cmat):
     Delta_e = [sum([delta_e[k]*np.abs(Cmat.Vt[k,j])**2 for k in range(De)]) for j in range(De)]
     Dmin = [Delta_e[i]-Delta_g[i] for i in range(M)]
     Dplu = [Delta_e[i]+Delta_g[i] for i in range(M)]
-
     if Dg>De:
         Dk = [Delta_g[i] for i in range(M,N)]
     elif De>Dg:
         Dk = [Delta_e[i] for i in range(M,N)]
     else:
         pass
-
     return Dmin, Dplu, Dk
 
 def generate_subdataframe(totallines):
