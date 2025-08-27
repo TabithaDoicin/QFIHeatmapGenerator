@@ -30,7 +30,7 @@ Tlist = np.geomspace(minT, maxT, numT)
 
 gprefactor=1
 
-totallines=125
+totallines=1
 totalsets=8
 
 normalised = False
@@ -201,11 +201,13 @@ def populate_dataframes_parallel(totallines, totalsets):
             bigset.append(df)
     return bigset
 
-def averageqfi():
+def averageqfis():
     Xq = mode_eigs_wishart(Dg, De, normalised)
     svddiagonals = [x**0.5 for x in Xq]
-    qfi = generate_qfi_list_theor2(wc, wa, Xq, Tlist, Dmin=0, Dplu=0, Dk=0, gprefactor=gprefactor)
-    return qfi
+    avgqfi = generate_qfi_list_theor2(wc, wa, Xq, Tlist, Dmin=0, Dplu=0, Dk=0, gprefactor=gprefactor)
+    sep = seperation([gprefactor],Xq,wc,wa)
+    avgqfi2ls = [sep**2/(4*t**4) * np.sech(sep/(2*t))**2 for t in Tlist]
+    return qfi, avgqfi2ls
 
 def main():
     print(mp)
@@ -215,9 +217,11 @@ def main():
     qfidf.to_csv('qfidataframe.csv', index=False)
     print('done biggy one :)')
     print('Starting average one...')
-    avgqfi = averageqfi()
+    avgqfi, avgqfi2ls = averageqfis()
     with Path("avgqfi.pkl").open("wb") as f:
         pickle.dump(avgqfi, f, protocol=pickle.HIGHEST_PROTOCOL)
+    with Path("avgqfi2ls.pkl").open("wb") as f:
+        pickle.dump(avgqfi2ls, f, protocol=pickle.HIGHEST_PROTOCOL)
     with Path("tlist.pkl").open("wb") as f:
         pickle.dump(Tlist, f, protocol=pickle.HIGHEST_PROTOCOL)
     print('Finito!')
