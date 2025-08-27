@@ -23,14 +23,14 @@ wa = 0.25
 ep1=0.05
 ep2=0.05
 
-minT=1e-1
+minT=1e-3
 maxT=1e3
-numT=300
+numT=500
 Tlist = np.geomspace(minT, maxT, numT)
 
 gprefactor=1
 
-totallines=2
+totallines=1250
 totalsets=8
 
 normalised = False
