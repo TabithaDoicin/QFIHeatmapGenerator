@@ -30,7 +30,7 @@ Tlist = np.geomspace(minT, maxT, numT)
 
 gprefactor=1
 
-totallines=200
+totallines=20
 totalsets=8
 
 normalised = False
