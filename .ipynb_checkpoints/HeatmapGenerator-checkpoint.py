@@ -12,8 +12,8 @@ import os
 
 mp.dps = 50
 
-Dg=20
-De=20
+Dg=50
+De=2
 
 wc = 1
 wa = 0.25
@@ -28,7 +28,7 @@ numT=350
 gprefactor=1
 
 totallines=200
-totalsets=6
+totalsets=8
 
 normalised = False
 
