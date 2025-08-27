@@ -16,19 +16,19 @@ Dg=100
 De=100
 
 wc = 1
-wa = 0.5
+wa = 0.25
 
-ep1=0
+ep1=0.05
 ep2=0.05
 
-minT=1e-10
-maxT=1e3
+minT=1e-7
+maxT=1e7
 numT=500
 
 gprefactor=1
 
 totallines=100
-totalsets=5
+totalsets=10
 
 normalised = False
 
