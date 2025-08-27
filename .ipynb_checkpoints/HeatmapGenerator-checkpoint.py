@@ -10,13 +10,16 @@ import concurrent.futures
 from concurrent.futures import ProcessPoolExecutor, as_completed
 import os
 
-mp.dps = 2000
+mp.dps = 50
 
-Dg=10
-De=10
+Dg=2
+De=2
 
 wc = 1
 wa = 0.5
+
+ep1=0
+ep2=0.05
 
 minT=1e-10
 maxT=1e3
@@ -25,7 +28,7 @@ numT=500
 totallines=10
 totalsets=5
 
-normalised = True
+normalised = False
 
 def generate_qfi_list_theor2(wc, wa, Xq, Tlist, Dmin=0, Dplu=0, Dk=0):
     M = int(np.min([Dg,De]))
@@ -53,7 +56,7 @@ def generate_qfi_list_theor2(wc, wa, Xq, Tlist, Dmin=0, Dplu=0, Dk=0):
         Dk = [mpf(k) for k in Dk]
     
     X = [mpf(k) for k in Xq]
-    g = mpf(Xq[0])
+    g = mpf(1) #mpf(Xq[0])
     wf = mpf(wc)
     wa = mpf(wa)
     T = [mpf(k) for k in Tlist]
@@ -94,7 +97,7 @@ def generate_qfi_list_theor2(wc, wa, Xq, Tlist, Dmin=0, Dplu=0, Dk=0):
         QFIlist1[t] = S1/Z
         QFIlist2[t] = S2/Z
         QFIlist3[t] = -(S3*S3)/(Z*Z)
-        QFI[t] = float((QFIlist1[t] + QFIlist2[t] + QFIlist3[t]) / (mpmath.power(T[t],4)))
+        QFI[t] = float(mpmath.log10(QFIlist1[t] + QFIlist2[t] + QFIlist3[t]) - mpf(4)*mpmath.log10(T[t]))
     return QFI
 
 def seperation(geff_list,Xq,wc,wa):
@@ -123,12 +126,13 @@ def generate_subdataframe(totallines):
         print('Progress: '+str(i/totallines))
         Cmat=CmatRandomAF(Dg,De,normalised)
         Xq = [svd**2 for svd in Cmat.svdvals]
-        sep = seperation([Xq[0]],Xq,wc,wa)
-        sep_list = [sep for k in range(numT)]
-        Xq_list = [Xq for k in range(numT)]
+        #sep = seperation([Xq[0]],Xq,wc,wa)
+        #sep_list = [sep for k in range(numT)]
+        #Xq_list = [Xq for k in range(numT)]
+        
         qfi_values = generate_qfi_list_theor2(wc, wa, Xq, Tlist)
         
-        line_df = pd.DataFrame({"Temp": Tlist, "QFI": qfi_values, "Xq":Xq_list, "Seperation":sep_list})
+        line_df = pd.DataFrame({"Temp": Tlist, "QFI": qfi_values})#, "Xq":Xq_list, "Seperation":sep_list})
         df_parts.append(line_df)
         df_parts.append(pd.DataFrame({"Temp": [np.nan], "QFI": [np.nan], "Seperation": [np.nan]}))  # separator row
     
