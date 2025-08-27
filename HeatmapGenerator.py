@@ -25,12 +25,14 @@ minT=1e-10
 maxT=1e3
 numT=500
 
+gprefactor=1
+
 totallines=100
 totalsets=5
 
 normalised = False
 
-def generate_qfi_list_theor2(wc, wa, Xq, Tlist, Dmin=0, Dplu=0, Dk=0):
+def generate_qfi_list_theor2(wc, wa, Xq, Tlist, Dmin=0, Dplu=0, Dk=0, gprefactor=1):
     M = int(np.min([Dg,De]))
     N = int(np.max([Dg,De]))
     if Dg>De:
@@ -56,7 +58,7 @@ def generate_qfi_list_theor2(wc, wa, Xq, Tlist, Dmin=0, Dplu=0, Dk=0):
         Dk = [mpf(k) for k in Dk]
     
     X = [mpf(k) for k in Xq]
-    g = mpf(1) #mpf(Xq[0])
+    g = mpf(gprefactor) #mpf(Xq[0])
     wf = mpf(wc)
     wa = mpf(wa)
     T = [mpf(k) for k in Tlist]
@@ -151,7 +153,7 @@ def generate_subdataframe(totallines):
 
         Dmin, Dplu, Dk = generate_detunings(ep1,ep2,wa,Dg,De)
         
-        qfi_values = generate_qfi_list_theor2(wc, wa, Xq, Tlist, Dmin, Dplu, Dk)
+        qfi_values = generate_qfi_list_theor2(wc, wa, Xq, Tlist, Dmin, Dplu, Dk, gprefactor)
         
         line_df = pd.DataFrame({"Temp": Tlist, "QFI": qfi_values})#, "Xq":Xq_list, "Seperation":sep_list})
         df_parts.append(line_df)
