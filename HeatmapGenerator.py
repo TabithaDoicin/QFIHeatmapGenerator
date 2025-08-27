@@ -135,7 +135,7 @@ def generate_detunings(ep1,ep2,wa,Dg,De,Cmat):
     elif De>Dg:
         Dk = [Delta_e[i] for i in range(M,N)]
     else:
-        pass
+        Dk = 0
     return Dmin, Dplu, Dk
 
 def generate_subdataframe(totallines):
