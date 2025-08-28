@@ -14,23 +14,23 @@ from pathlib import Path
 
 mp.dps = 50
 
-Dg=200
-De=200
+Dg=100
+De=5
 
 wc = 1
 wa = 0.25
 
-ep1=0.05
-ep2=0.05
+ep1=0.25
+ep2=0.25
 
-minT=1e-3
+minT=1e-5
 maxT=1e3
 numT=500
 Tlist = np.geomspace(minT, maxT, numT)
 
 gprefactor=1
 
-totallines=1250
+totallines=125
 totalsets=8
 
 normalised = False
@@ -167,15 +167,15 @@ def generate_subdataframe(totallines):
         print('Progress: '+str(i/totallines))
         Cmat=CmatRandomAF(Dg,De,normalised)
         Xq = [svd**2 for svd in Cmat.svdvals]
-        #sep = seperation([Xq[0]],Xq,wc,wa)
+        #sep = seperation([gprefactor],Xq,wc,wa)
         #sep_list = [sep for k in range(numT)]
         #Xq_list = [Xq for k in range(numT)]
-
+        Xqratio = [Xq[1]/Xq[0] for k in range(numT)]
         Dmin, Dplu, Dk = generate_detunings(ep1,ep2,wa,Dg,De,Cmat)
         
         qfi_values = generate_qfi_list_theor2(wc, wa, Xq, Tlist, Dmin, Dplu, Dk, gprefactor)
         
-        line_df = pd.DataFrame({"Temp": Tlist, "QFI": qfi_values})#, "Xq":Xq_list, "Seperation":sep_list})
+        line_df = pd.DataFrame({"Temp": Tlist, "QFI": qfi_values, "Xqratio": Xqratio})#, "Xq":Xq_list, "Seperation":sep_list})
         df_parts.append(line_df)
         df_parts.append(pd.DataFrame({"Temp": [np.nan], "QFI": [np.nan], "Seperation": [np.nan]}))  # separator row
     
@@ -218,11 +218,9 @@ def main():
     qfidf.to_csv('qfidataframe.csv', index=False)
     print('done biggy one :)')
     print('Starting average one...')
-    avgqfi, avgqfi2ls = averageqfis()
+    avgqfi, _ = averageqfis()
     with Path("avgqfi.pkl").open("wb") as f:
         pickle.dump(avgqfi, f, protocol=pickle.HIGHEST_PROTOCOL)
-    with Path("avgqfi2ls.pkl").open("wb") as f:
-        pickle.dump(avgqfi2ls, f, protocol=pickle.HIGHEST_PROTOCOL)
     with Path("tlist.pkl").open("wb") as f:
         pickle.dump(Tlist, f, protocol=pickle.HIGHEST_PROTOCOL)
     print('Finito!')
