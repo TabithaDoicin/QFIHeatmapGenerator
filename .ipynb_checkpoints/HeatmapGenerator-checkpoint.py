@@ -14,8 +14,8 @@ from pathlib import Path
 
 mp.dps = 50
 
-Dg=1000
-De=1000
+Dg=500
+De=500
 
 wc = 1
 wa = 0.25
@@ -24,7 +24,7 @@ ep1=0.25
 ep2=0.25
 
 minT=1e-1
-maxT=1e3
+maxT=1e6
 numT=100
 Tlist = np.geomspace(minT, maxT, numT)
 
