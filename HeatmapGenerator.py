@@ -149,8 +149,8 @@ def generate_detunings(ep1,ep2,wa,Dg,De,Cmat):
     N = int(np.max([Dg,De]))
     delta_g = np.random.normal(0, ep1*wa/2, size=(1, Dg))[0]
     delta_e = np.random.normal(0, ep2*wa/2, size=(1, De))[0]
-    Delta_g = [sum([delta_g[k]*np.abs(Cmat.U[k,j])**2 for k in range(Dg)]) for j in range(Dg)]
-    Delta_e = [sum([delta_e[k]*np.abs(Cmat.Vt[k,j])**2 for k in range(De)]) for j in range(De)]
+    Delta_g = [sum([delta_g[k]*np.abs(Cmat.U[k,j])**2 for k in range(Dg)]) for j in range(M)]
+    Delta_e = [sum([delta_e[k]*np.abs(Cmat.Vt[k,j])**2 for k in range(De)]) for j in range(M)]
     Dmin = [Delta_e[i]-Delta_g[i] for i in range(M)]
     Dplu = [Delta_e[i]+Delta_g[i] for i in range(M)]
     if Dg>De:
