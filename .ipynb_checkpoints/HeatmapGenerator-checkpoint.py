@@ -154,9 +154,9 @@ def generate_detunings(ep1,ep2,wa,Dg,De,Cmat):
     Dmin = [Delta_e[i]-Delta_g[i] for i in range(M)]
     Dplu = [Delta_e[i]+Delta_g[i] for i in range(M)]
     if Dg>De:
-        Dk = [Delta_g[i] for i in range(M,N)]
+        Dk = [0 for i in range(M,N)]
     elif De>Dg:
-        Dk = [Delta_e[i] for i in range(M,N)]
+        Dk = [0 for i in range(M,N)]
     else:
         Dk = 0
     return Dmin, Dplu, Dk
