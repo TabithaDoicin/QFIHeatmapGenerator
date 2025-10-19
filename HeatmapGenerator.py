@@ -14,8 +14,8 @@ from pathlib import Path
 
 mp.dps = 50
 
-Dg=500
-De=500
+Dg=100
+De=100
 
 wc = 1
 wa = 0.25
@@ -23,17 +23,17 @@ wa = 0.25
 ep1=0.25
 ep2=0.25
 
-minT=1e-1
-maxT=1e6
+minT=1e-5
+maxT=1e1
 numT=100
 Tlist = np.geomspace(minT, maxT, numT)
 
 gprefactor=1
 
-totallines=12
+totallines=10
 totalsets=8
 
-normalised = False
+normalised = True
 
 def mode_eigs_wishart(Dg, De, normalised, beta=2, c=1.0):
     M = np.min([Dg,De])
