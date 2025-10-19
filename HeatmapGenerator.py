@@ -32,6 +32,7 @@ gprefactor=1
 
 totallines=10
 totalsets=8
+workers=8
 
 normalised = True
 
@@ -153,9 +154,7 @@ def generate_detunings(ep1,ep2,wa,Dg,De,Cmat):
     Delta_e = [sum([delta_e[k]*np.abs(Cmat.Vt[k,j])**2 for k in range(De)]) for j in range(M)]
     Dmin = [Delta_e[i]-Delta_g[i] for i in range(M)]
     Dplu = [Delta_e[i]+Delta_g[i] for i in range(M)]
-    if Dg>De:
-        Dk = [0 for i in range(M,N)]
-    elif De>Dg:
+    if Dg>De or De>Dg:
         Dk = [0 for i in range(M,N)]
     else:
         Dk = 0
@@ -170,20 +169,20 @@ def generate_subdataframe(totallines):
         #sep = seperation([gprefactor],Xq,wc,wa)
         #sep_list = [sep for k in range(numT)]
         #Xq_list = [Xq for k in range(numT)]
-        Xqratio = [Xq[1]/Xq[0] for k in range(numT)]
+        #Xqratio = [Xq[1]/Xq[0] for k in range(numT)]
         Dmin, Dplu, Dk = generate_detunings(ep1,ep2,wa,Dg,De,Cmat)
         
         qfi_values = generate_qfi_list_theor2(wc, wa, Xq, Tlist, Dmin, Dplu, Dk, gprefactor)
         
-        line_df = pd.DataFrame({"Temp": Tlist, "QFI": qfi_values, "Xqratio": Xqratio})#, "Xq":Xq_list, "Seperation":sep_list})
+        line_df = pd.DataFrame({"Temp": Tlist, "QFI": qfi_values})#, "Xqratio": Xqratio})#, "Xq":Xq_list, "Seperation":sep_list})
         df_parts.append(line_df)
-        df_parts.append(pd.DataFrame({"Temp": [np.nan], "QFI": [np.nan], "Seperation": [np.nan]}))  # separator row
+        df_parts.append(pd.DataFrame({"Temp": [np.nan], "QFI": [np.nan]})#, "Xqratio": [np.nan]}))  # separator row
     
     return pd.concat(df_parts, ignore_index=True)
 
 def populate_dataframes_parallel_cpu(totallines, totalsets):
     bigset = []
-    with ProcessPoolExecutor(max_workers=8) as ex:
+    with ProcessPoolExecutor(max_workers=workers) as ex:
         futures = [ex.submit(generate_subdataframe, totallines) for _ in range(totalsets)]
         for fut in as_completed(futures):
             bigset.append(fut.result())
