@@ -78,7 +78,7 @@ def generate_qfi_list_theor2(wc, wa, Xq, Tlist, Dmin=0, Dplu=0, Dk=0, gprefactor
     if Dk==0:
         Dk = [mpf(0) for k in range(N-M)]
     else:
-        Dk = [mpf(k) for k in Dk]
+        Dk = [mpf(0) for k in Dk]
     
     X = [mpf(k) for k in Xq]
     g = mpf(gprefactor) #mpf(Xq[0])
