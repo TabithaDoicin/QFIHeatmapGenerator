@@ -14,7 +14,7 @@ from pathlib import Path
 
 mp.dps = 50
 
-Dg=1
+Dg=2
 De=250
 
 wc = 1
