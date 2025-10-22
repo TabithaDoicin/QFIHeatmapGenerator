@@ -100,7 +100,7 @@ def AA_energies_uptodark(wc,wa,Xq,O,Dg,De,Dmin,Dplu,Dk,geff=1, ordered = False):
         return ls[~np.isnan(ls)]
     else:
         evals = evalsB+evalsD
-        return evals[~np.isnan(evals)]
+        return evals
         
 def generate_qfi_list_theor2(wc, wa, Xq, Tlist, Dmin=0, Dplu=0, Dk=0, gprefactor=1):
     M = int(np.min([Dg,De]))
