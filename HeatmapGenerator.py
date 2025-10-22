@@ -30,15 +30,17 @@ maxT=1e3
 numT=200
 Tlist = np.geomspace(minT, maxT, numT)
 
-gprefactor=0.8
+gprefactor=1/(2*np.sqrt(350))
 
 totallines=10
 totalsets=8
 workers=8
 
+
+
 method = 'oscillatorordered' #'energyordered' or 'oscillatorordered'
 theta = 1
-normalised = True
+Individuallynormalised = False
 print('g = ' + str(gprefactor))
 print('method = ' + method)
 
@@ -231,7 +233,7 @@ def generate_subdataframe(totallines):
     df_parts = []
     for i in range(totallines):
         print('Progress: '+str(i/totallines))
-        Cmat=CmatRandomAF(Dg,De,normalised)
+        Cmat=CmatRandomAF(Dg,De,Individuallynormalised)
         Xq = [svd**2 for svd in Cmat.svdvals]
         #sep = seperation([gprefactor],Xq,wc,wa)
         #sep_list = [sep for k in range(numT)]
