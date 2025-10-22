@@ -15,8 +15,8 @@ import math
 
 mp.dps = 50
 
-Dg=1000
-De=1000
+Dg=100
+De=100
 M = np.min([Dg,De])
 N = np.max([Dg,De])
 wc = 1
