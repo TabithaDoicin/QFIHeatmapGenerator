@@ -32,7 +32,7 @@ Tlist = np.geomspace(minT, maxT, numT)
 
 gprefactor=0.8 * 1/(2*np.sqrt(100))
 
-totallines=120
+totallines=1000
 totalsets=8
 workers=8
 
