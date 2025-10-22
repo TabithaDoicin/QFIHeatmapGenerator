@@ -236,7 +236,7 @@ def generate_subdataframe(totallines):
         #sep_list = [sep for k in range(numT)]
         #Xq_list = [Xq for k in range(numT)]
         if M==1:
-            Xqratio = [1 for k in range(numT)]
+            Xqratio = [np.nan for k in range(numT)]
         elif M>1:
             Xqratio = [Xq[1]/Xq[0] for k in range(numT)]
         Dmin, Dplu, Dk = generate_detunings(ep1, ep2, wa, Dg, De, Cmat)
@@ -263,7 +263,7 @@ def populate_dataframes_parallel_cpu(totallines, totalsets):
             dfs, es = fut.result()
             bigset.append(dfs)
             energies.append(es)
-    return bigset, np.flatten(np.array(energies))
+    return bigset, np.array(energies).flatten()
 
 def populate_dataframes_parallel(totallines, totalsets):
     bigset = []
