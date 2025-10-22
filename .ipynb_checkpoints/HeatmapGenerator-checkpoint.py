@@ -20,10 +20,10 @@ De=400
 M = np.min([Dg,De])
 N = np.max([Dg,De])
 wc = 1
-wa = 0.2
+wa = 0.25
 
-ep1=0.1
-ep2=0.1
+ep1=0.2
+ep2=0.2
 
 minT=1e-7
 maxT=1e3
