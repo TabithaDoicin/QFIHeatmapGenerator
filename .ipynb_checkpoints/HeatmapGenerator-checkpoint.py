@@ -253,7 +253,7 @@ def generate_subdataframe(totallines):
         df_parts.append(line_df)
         df_parts.append(pd.DataFrame({"Temp": [np.nan], "QFI": [np.nan], "Xqratio": [np.nan]}))  # separator row
     
-    return pd.concat(df_parts, ignore_index=True)
+    return pd.concat(df_parts, ignore_index=True), energies
 
 def populate_dataframes_parallel_cpu(totallines, totalsets):
     bigset = []
