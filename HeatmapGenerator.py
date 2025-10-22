@@ -30,7 +30,7 @@ maxT=1e3
 numT=200
 Tlist = np.geomspace(minT, maxT, numT)
 
-gprefactor=0.8/(2*np.sqrt(1000))
+gprefactor=1
 
 totallines=10
 totalsets=8
@@ -38,7 +38,7 @@ workers=8
 
 
 
-method = 'oscillatorordered' #'energyordered' or 'oscillatorordered'
+method = 'energyordered' #'energyordered' or 'oscillatorordered'
 theta = 1
 Individuallynormalised = False
 print('g = ' + str(gprefactor))
