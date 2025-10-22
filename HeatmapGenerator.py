@@ -268,7 +268,7 @@ def populate_dataframes_parallel_cpu(totallines, totalsets):
             dfs, es = fut.result()
             bigset.append(dfs)
             energies.append(es)
-    return bigset, np.array(energies).flatten()
+    return bigset, energies
 
 def averageqfi():
     Xq = mode_eigs_wishart(Dg, De, Individuallynormalised)
