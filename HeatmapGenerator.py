@@ -68,7 +68,7 @@ def AA_energies_uptodark(wc,wa,Xq,O,Dg,De,Dmin,Dplu,Dk,geff=1, ordered = False):
     M = np.min([Dg,De])
     N = np.max([Dg,De])
     X = Xq
-    laglist = [sp.special.laguerre(t,False) for t in range(math.floor(O+geff**2))]
+    laglist = [sp.special.laguerre(t,False) for t in range(math.floor(O+X[0]*geff**2))]
    
     evalsD = []
     for n in range(O):
@@ -269,7 +269,7 @@ def populate_dataframes_parallel_cpu(totallines, totalsets):
     return bigset, np.array(energies).flatten()
 
 def averageqfi():
-    Xq = mode_eigs_wishart(Dg, De, normalised)
+    Xq = mode_eigs_wishart(Dg, De, Individuallynormalised)
     svddiagonals = [x**0.5 for x in Xq]
     avgqfi = generate_qfi_list_theor2(wc, wa, Xq, Tlist, Dmin=0, Dplu=0, Dk=0, gprefactor=gprefactor)
     return avgqfi
