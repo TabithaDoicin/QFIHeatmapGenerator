@@ -256,7 +256,7 @@ def populate_dataframes_parallel_cpu(totallines, totalsets):
     with ProcessPoolExecutor(max_workers=workers) as ex:
         futures = [ex.submit(generate_subdataframe, totallines) for _ in range(totalsets)]
         for fut in as_completed(futures):
-            dfs, es = [],[] = fut.result()
+            dfs, es = fut.result()
             bigset.append(dfs)
             energies.append(es)
     return bigset, np.flatten(np.array(energies))
