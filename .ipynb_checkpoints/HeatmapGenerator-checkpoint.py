@@ -15,7 +15,7 @@ import math
 
 mp.dps = 50
 
-Dg=350
+Dg=1
 De=350
 M = np.min([Dg,De])
 N = np.max([Dg,De])
@@ -30,7 +30,7 @@ maxT=1e3
 numT=200
 Tlist = np.geomspace(minT, maxT, numT)
 
-gprefactor=0.8/(2*np.sqrt(350))
+gprefactor=0.8/(np.sqrt(350))
 
 totallines=10
 totalsets=8
