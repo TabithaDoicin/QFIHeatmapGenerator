@@ -16,7 +16,8 @@ mp.dps = 50
 
 Dg=1
 De=400
-
+M = np.min([Dg,De])
+N = np.max([Dg,De])
 wc = 1
 wa = 0.2
 
@@ -234,7 +235,10 @@ def generate_subdataframe(totallines):
         #sep = seperation([gprefactor],Xq,wc,wa)
         #sep_list = [sep for k in range(numT)]
         #Xq_list = [Xq for k in range(numT)]
-        Xqratio = [Xq[1]/Xq[0] for k in range(numT)]
+        if M==1:
+            Xqratio = [1 for k in range(numT)]
+        elif M>1:
+            Xqratio = [Xq[1]/Xq[0] for k in range(numT)]
         Dmin, Dplu, Dk = generate_detunings(ep1, ep2, wa, Dg, De, Cmat)
         if method == 'oscillatorordered':
             energylist = AA_energies_uptodark(wc, wa, Xq, 0, Dg, De, Dmin, Dplu, Dk, geff=gprefactor, ordered = False)
