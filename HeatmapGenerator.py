@@ -15,15 +15,15 @@ import math
 
 mp.dps = 50
 
-Dg=400
-De=400
+Dg=350
+De=350
 M = np.min([Dg,De])
 N = np.max([Dg,De])
 wc = 1
 wa = 0.25
 
-ep1=0.2
-ep2=0.2
+ep1=0.25
+ep2=0.25
 
 minT=1e-7
 maxT=1e3
