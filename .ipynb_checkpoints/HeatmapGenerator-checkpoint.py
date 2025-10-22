@@ -68,7 +68,7 @@ def AA_energies_uptodark(wc,wa,Xq,O,Dg,De,Dmin,Dplu,Dk,geff=1, ordered = False):
     M = np.min([Dg,De])
     N = np.max([Dg,De])
     X = Xq
-    laglist = [sp.special.laguerre(t,False) for t in range(math.ceil(O+X[0]*geff**2))]
+    laglist = 0#[sp.special.laguerre(t,False) for t in range(math.ceil(O+X[0]*geff**2))]
    
     evalsD = []
     for n in range(O):
@@ -87,11 +87,11 @@ def AA_energies_uptodark(wc,wa,Xq,O,Dg,De,Dmin,Dplu,Dk,geff=1, ordered = False):
         indicator = math.floor(O + wa/2 + geff**2 *X[q]) 
         for t in range(indicator):
             Em = wc*(t-geff**2*X[q]/wc**2) + 0.5*(Dplu[q])\
-                            -0.5*(wa+Dmin[q])*np.exp(-2*X[q]*geff**2/wc**2)\
-                                            *np.real(laglist[t](4*X[q]*geff**2/wc**2))
+                            -0.5*(wa+Dmin[q])*0#np.exp(-2*X[q]*geff**2/wc**2)\
+                                            #*np.real(laglist[t](4*X[q]*geff**2/wc**2))
             Ep = wc*(t-geff**2*X[q]/wc**2) + 0.5*(Dplu[q])\
-                            +0.5*(wa+Dmin[q])*np.exp(-2*X[q]*geff**2/wc**2)\
-                                            *np.real(laglist[t](4*X[q]*geff**2/wc**2))
+                            +0.5*(wa+Dmin[q])*0#np.exp(-2*X[q]*geff**2/wc**2)\
+                                            #*np.real(laglist[t](4*X[q]*geff**2/wc**2))
             evalsB.append(Em)
             evalsB.append(Ep)
     
