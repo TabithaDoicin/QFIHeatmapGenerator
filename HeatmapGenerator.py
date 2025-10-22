@@ -99,7 +99,7 @@ def AA_energies_uptodark(wc,wa,Xq,O,Dg,De,Dmin,Dplu,Dk,geff=1, ordered = False):
         ls = np.array([x for x in np.sort(evalsB+evalsD)])
         return ls[~np.isnan(ls)]
     else:
-        evals = np.array(evalsB+evalsD)
+        evals = evalsB+evalsD
         return evals[~np.isnan(evals)]
         
 def generate_qfi_list_theor2(wc, wa, Xq, Tlist, Dmin=0, Dplu=0, Dk=0, gprefactor=1):
@@ -178,7 +178,7 @@ def logsumexp_mp(xs):
     return m + mp.log(mp.fsum(mp.e**(x - m) for x in xs))
 
 def generate_qfi_list_fromE(Elist, Tlist):
-    E=Elist
+    E=np.array(Elist)
     Tl = [mpf(k) for k in Tlist]
     qfi_list = []
     Z_list = []
@@ -255,8 +255,7 @@ def generate_subdataframe(totallines):
         line_df = pd.DataFrame({"Temp": Tlist, "QFI": qfi_values, "Xqratio": Xqratio})#, "Xq":Xq_list, "Seperation":sep_list})
         df_parts.append(line_df)
         df_parts.append(pd.DataFrame({"Temp": [np.nan], "QFI": [np.nan], "Xqratio": [np.nan]}))  # separator row
-        elist_parts.append(energylist)
-    
+        elist_parts = elist_parts+energylist
     return pd.concat(df_parts, ignore_index=True), elist_parts
 
 def populate_dataframes_parallel_cpu(totallines, totalsets):
@@ -267,7 +266,7 @@ def populate_dataframes_parallel_cpu(totallines, totalsets):
         for fut in as_completed(futures):
             dfs, es = fut.result()
             bigset.append(dfs)
-            energies.append(es)
+            energies = energies + es
     return bigset, energies
 
 def averageqfi():
