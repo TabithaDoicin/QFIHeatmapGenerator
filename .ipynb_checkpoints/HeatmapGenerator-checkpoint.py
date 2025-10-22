@@ -14,27 +14,31 @@ from pathlib import Path
 
 mp.dps = 50
 
-Dg=10
-De=450
+Dg=1
+De=400
 
 wc = 1
-wa = 0.25
+wa = 0.2
 
-ep1=0.25
-ep2=0.25
+ep1=0.1
+ep2=0.1
 
 minT=1e-7
 maxT=1e3
 numT=200
 Tlist = np.geomspace(minT, maxT, numT)
 
-gprefactor=1
+gprefactor=0.8
 
 totallines=10
 totalsets=8
 workers=8
 
+method = 'oscillatorordered' #'energyordered' or 'oscillatorordered'
+theta = 1
 normalised = True
+print('g = ' + str(gprefactor))
+print('method = ' + method)
 
 def mode_eigs_wishart(Dg, De, normalised, beta=2, c=1.0):
     M = np.min([Dg,De])
@@ -56,6 +60,44 @@ def mode_eigs_wishart(Dg, De, normalised, beta=2, c=1.0):
         lambdas_mode = roots_sorted
         return lambdas_mode
 
+def AA_energies_uptodark(wc,wa,Xq,O,Dg,De,Dmin,Dplu,Dk,geff=1, ordered = False):
+    M = np.min([Dg,De])
+    N = np.max([Dg,De])
+    X = Xq
+    laglist = [sp.special.laguerre(t,False) for t in range(math.floor(O+geff**2))]
+   
+    evalsD = []
+    for n in range(O):
+        for k in range(N-M):
+            if Dg>De:
+                pm = -1
+            elif Dg<De:
+                pm = 1
+            else:
+                pass
+            E = n*wc + pm*wa/2 + Dk[k]
+            evalsD.append(E)
+
+    evalsB = []
+    for q in range(len(X)):
+        indicator = math.floor(O + wa/2 + geff**2 *X[q]) 
+        for t in range(indicator):
+            Em = wc*(t-geff**2*X[q]/wc**2) + 0.5*(Dplu[q])\
+                            -0.5*(wa+Dmin[q])*np.exp(-2*X[q]*geff**2/wc**2)\
+                                            *np.real(laglist[t](4*X[q]*geff**2/wc**2))
+            Ep = wc*(t-geff**2*X[q]/wc**2) + 0.5*(Dplu[q])\
+                            +0.5*(wa+Dmin[q])*np.exp(-2*X[q]*geff**2/wc**2)\
+                                            *np.real(laglist[t](4*X[q]*geff**2/wc**2))
+            evalsB.append(Em)
+            evalsB.append(Ep)
+    
+    if ordered==True:
+        ls = np.array([x for x in np.sort(evalsB+evalsD)])
+        return ls[~np.isnan(ls)]
+    else:
+        evals = np.array(evalsB+evalsD)
+        return evals[~np.isnan(evals)]
+        
 def generate_qfi_list_theor2(wc, wa, Xq, Tlist, Dmin=0, Dplu=0, Dk=0, gprefactor=1):
     M = int(np.min([Dg,De]))
     N = int(np.max([Dg,De]))
@@ -126,6 +168,29 @@ def generate_qfi_list_theor2(wc, wa, Xq, Tlist, Dmin=0, Dplu=0, Dk=0, gprefactor
         QFI[t] = float( (QFIlist1[t] + QFIlist2[t] + QFIlist3[t])/(mpmath.power(T[t],4)) )
     return QFI
 
+def logsumexp_mp(xs):
+    # xs: list of mp.mpf
+    m = max(xs)
+    return m + mp.log(mp.fsum(mp.e**(x - m) for x in xs))
+
+def generate_qfi_list_fromE(Elist, Tlist):
+    E=Elist
+    Tl = [mpf(k) for k in Tlist]
+    qfi_list = []
+    Z_list = []
+    for T in Tl:
+        logweights  = [-(e/T) for e in E] 
+        logZ  = logsumexp_mp(logweights)
+        p = [mp.e**(logw-logZ) for logw in logweights]
+        
+        mu1 = mp.fsum(pi * ei for pi, ei in zip(p, E))
+        mu2 = mp.fsum(pi * (ei * ei) for pi, ei in zip(p, E))
+        var = mu2 - mu1 * mu1
+
+        Z_list.append(mp.e**logZ)
+        qfi_list.append(var/(T**mpf(4)))
+    return qfi_list
+
 def seperation(geff_list,Xq,wc,wa):
     E1 = [-g**2*Xq[0]/wc**2 - 0.5*wa*np.exp(-2/wc**2 * g**2 * Xq[0]) for g in geff_list]
     E2 = [-g**2*Xq[1]/wc**2 - 0.5*wa*np.exp(-2/wc**2 * g**2 * Xq[1]) for g in geff_list]
@@ -155,7 +220,7 @@ def generate_detunings(ep1,ep2,wa,Dg,De,Cmat):
     Dmin = [Delta_e[i]-Delta_g[i] for i in range(M)]
     Dplu = [Delta_e[i]+Delta_g[i] for i in range(M)]
     if Dg>De or De>Dg:
-        Dk = [0 for i in range(M,N)]
+        Dk = [0 for i in range(M,N)] #disregarding Dk since it is not correct to have it, look at paper...
     else:
         Dk = 0
     return Dmin, Dplu, Dk
@@ -169,24 +234,32 @@ def generate_subdataframe(totallines):
         #sep = seperation([gprefactor],Xq,wc,wa)
         #sep_list = [sep for k in range(numT)]
         #Xq_list = [Xq for k in range(numT)]
-        #Xqratio = [Xq[1]/Xq[0] for k in range(numT)]
-        Dmin, Dplu, Dk = generate_detunings(ep1,ep2,wa,Dg,De,Cmat)
-        
-        qfi_values = generate_qfi_list_theor2(wc, wa, Xq, Tlist, Dmin, Dplu, Dk, gprefactor)
-        
-        line_df = pd.DataFrame({"Temp": Tlist, "QFI": qfi_values})#, "Xqratio": Xqratio})#, "Xq":Xq_list, "Seperation":sep_list})
+        Xqratio = [Xq[1]/Xq[0] for k in range(numT)]
+        Dmin, Dplu, Dk = generate_detunings(ep1, ep2, wa, Dg, De, Cmat)
+        if method == 'oscillatorordered':
+            energylist = AA_energies_uptodark(wc, wa, Xq, 0, Dg, De, Dmin, Dplu, Dk, geff=gprefactor, ordered = False)
+            qfi_values = generate_qfi_list_theor2(wc, wa, Xq, Tlist, Dmin, Dplu, Dk, gprefactor)
+        elif method == 'energyordered':
+            energylist = AA_energies_uptodark(wc, wa, Xq, theta, Dg, De, Dmin, Dplu, Dk, geff=gprefactor, ordered = False)
+            qfi_values = generate_qfi_list_fromE(energylist, Tlist)
+        else:
+            raise ValueError('what? please set a valid method')
+        line_df = pd.DataFrame({"Temp": Tlist, "QFI": qfi_values, "Xqratio": Xqratio})#, "Xq":Xq_list, "Seperation":sep_list})
         df_parts.append(line_df)
-        df_parts.append(pd.DataFrame({"Temp": [np.nan], "QFI": [np.nan]})#, "Xqratio": [np.nan]}))  # separator row
+        df_parts.append(pd.DataFrame({"Temp": [np.nan], "QFI": [np.nan], "Xqratio": [np.nan]}))  # separator row
     
     return pd.concat(df_parts, ignore_index=True)
 
 def populate_dataframes_parallel_cpu(totallines, totalsets):
     bigset = []
+    energies = []
     with ProcessPoolExecutor(max_workers=workers) as ex:
         futures = [ex.submit(generate_subdataframe, totallines) for _ in range(totalsets)]
         for fut in as_completed(futures):
-            bigset.append(fut.result())
-    return bigset
+            dfs, es = [],[] = fut.result()
+            bigset.append(dfs)
+            energies.append(es)
+    return bigset, np.flatten(np.array(energies))
 
 def populate_dataframes_parallel(totallines, totalsets):
     bigset = []
@@ -212,12 +285,14 @@ def averageqfis():
 def main():
     print(mp)
     print("Creating dataframe...")
-    bigset = populate_dataframes_parallel_cpu(totallines, totalsets)
-    qfidf = pd.concat(bigset, ignore_index=True)  
+    bigset, energies = populate_dataframes_parallel_cpu(totallines, totalsets)
+    qfidf = pd.concat(bigset, ignore_index=True)
     qfidf.to_csv('qfidataframe.csv', index=False)
     print('done biggy one :)')
     print('Starting average one...')
     avgqfi, _ = averageqfis()
+    with Path("energies.pkl").open("wb") as f:
+        pickle.dump(energies, f, protocol=pickle.HIGHEST_PROTOCOL)
     with Path("avgqfi.pkl").open("wb") as f:
         pickle.dump(avgqfi, f, protocol=pickle.HIGHEST_PROTOCOL)
     with Path("tlist.pkl").open("wb") as f:
