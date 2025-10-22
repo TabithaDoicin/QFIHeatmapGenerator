@@ -16,7 +16,7 @@ import math
 mp.dps = 50
 
 Dg=1
-De=350
+De=500
 M = np.min([Dg,De])
 N = np.max([Dg,De])
 wc = 1
@@ -231,6 +231,7 @@ def generate_detunings(ep1,ep2,wa,Dg,De,Cmat):
 
 def generate_subdataframe(totallines):
     df_parts = []
+    elist_parts = []
     for i in range(totallines):
         print('Progress: '+str(i/totallines))
         Cmat=CmatRandomAF(Dg,De,Individuallynormalised)
@@ -254,8 +255,9 @@ def generate_subdataframe(totallines):
         line_df = pd.DataFrame({"Temp": Tlist, "QFI": qfi_values, "Xqratio": Xqratio})#, "Xq":Xq_list, "Seperation":sep_list})
         df_parts.append(line_df)
         df_parts.append(pd.DataFrame({"Temp": [np.nan], "QFI": [np.nan], "Xqratio": [np.nan]}))  # separator row
+        elist_parts.append(energylist)
     
-    return pd.concat(df_parts, ignore_index=True), energylist
+    return pd.concat(df_parts, ignore_index=True), elist_parts
 
 def populate_dataframes_parallel_cpu(totallines, totalsets):
     bigset = []
