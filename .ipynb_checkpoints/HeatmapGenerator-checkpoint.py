@@ -244,7 +244,7 @@ def generate_subdataframe(totallines):
             Xqratio = [Xq[1]/Xq[0] for k in range(numT)]
         Dmin, Dplu, Dk = generate_detunings(ep1, ep2, wa, Dg, De, Cmat)
         if method == 'oscillatorordered':
-            energylist = AA_energies_uptodark(wc, wa, Xq, 0, Dg, De, Dmin, Dplu, Dk, geff=gprefactor, ordered = False)
+            energylist = AA_energies_uptodark(wc, wa, Xq, 1, Dg, De, Dmin, Dplu, Dk, geff=gprefactor, ordered = False)
             qfi_values = generate_qfi_list_theor2(wc, wa, Xq, Tlist, Dmin, Dplu, Dk, gprefactor)
         elif method == 'energyordered':
             energylist = AA_energies_uptodark(wc, wa, Xq, theta, Dg, De, Dmin, Dplu, Dk, geff=gprefactor, ordered = False)
