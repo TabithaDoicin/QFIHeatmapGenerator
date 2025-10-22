@@ -30,7 +30,7 @@ maxT=1e3
 numT=200
 Tlist = np.geomspace(minT, maxT, numT)
 
-gprefactor=10 * 1/(np.sqrt(100))
+gprefactor=10 * 1/(2*np.sqrt(100))
 
 totallines=10
 totalsets=8
