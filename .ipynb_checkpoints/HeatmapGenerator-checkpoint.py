@@ -266,26 +266,11 @@ def populate_dataframes_parallel_cpu(totallines, totalsets):
             energies.append(es)
     return bigset, np.array(energies).flatten()
 
-def populate_dataframes_parallel(totallines, totalsets):
-    bigset = []
-    with concurrent.futures.ThreadPoolExecutor() as executor:
-        # Submit tasks
-        futures = [executor.submit(generate_subdataframe, totallines) for _ in range(totalsets)]
-        time.sleep(0)
-        # Collect results
-        for future in concurrent.futures.as_completed(futures):
-            df = future.result()
-            bigset.append(df)
-    return bigset
-
-def averageqfis():
+def averageqfi():
     Xq = mode_eigs_wishart(Dg, De, normalised)
     svddiagonals = [x**0.5 for x in Xq]
     avgqfi = generate_qfi_list_theor2(wc, wa, Xq, Tlist, Dmin=0, Dplu=0, Dk=0, gprefactor=gprefactor)
-    sep = mpf(seperation([gprefactor],Xq,wc,wa))
-    print('average primary seperation = ' + str(sep))
-    avgqfi2ls = [mpmath.power(sep,2)/(mpf(4)*mpmath.power(mpf(t),4)) * mpmath.power(mpmath.cosh(sep/(mpf(2)*mpf(t))),-2) for t in Tlist]
-    return avgqfi, avgqfi2ls
+    return avgqfi
 
 def main():
     print(mp)
@@ -295,7 +280,7 @@ def main():
     qfidf.to_csv('qfidataframe.csv', index=False)
     print('done biggy one :)')
     print('Starting average one...')
-    avgqfi, _ = averageqfis()
+    avgqfi = averageqfi()
     with Path("energies.pkl").open("wb") as f:
         pickle.dump(energies, f, protocol=pickle.HIGHEST_PROTOCOL)
     with Path("avgqfi.pkl").open("wb") as f:
