@@ -15,24 +15,24 @@ import math
 
 mp.dps = 50
 
-Dg=10
+Dg=1
 De=100
 M = np.min([Dg,De])
 N = np.max([Dg,De])
 wc = 1
 wa = 0.25
 
-ep1=0.25
-ep2=0.25
+ep1=0.2
+ep2=0.2
 
 minT=1e-7
 maxT=1e3
 numT=200
 Tlist = np.geomspace(minT, maxT, numT)
 
-gprefactor=0.8 * 1/(2*np.sqrt(100))
+gprefactor=0.8 * 1/(np.sqrt(100))
 
-totallines=1000
+totallines=1250
 totalsets=8
 workers=8
 
