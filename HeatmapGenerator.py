@@ -102,7 +102,8 @@ def AA_energies_uptodark(wc,wa,Xq,O,Dg,De,Dmin,Dplu,Dk,geff=1, ordered = False):
         evals = evalsB+evalsD
         return evals
         
-def generate_qfi_list_theor2(wc, wa, Xq, Tlist, Dmin=0, Dplu=0, Dk=0, gprefactor=1):
+def generate_qfi_list_theor2(wc, wa, Xq, Tlist, Dg, De, Dmin=0, Dplu=0, Dk=0, gprefactor=1, Ocutoff = 0):
+    laguerrelist = [sp.special.laguerre(n,False) for n in range(math.floor(Ocutoff+gprefactor**2+2))]
     M = int(np.min([Dg,De]))
     N = int(np.max([Dg,De]))
     if Dg>De:
@@ -125,7 +126,7 @@ def generate_qfi_list_theor2(wc, wa, Xq, Tlist, Dmin=0, Dplu=0, Dk=0, gprefactor
     if Dk==0:
         Dk = [mpf(0) for k in range(N-M)]
     else:
-        Dk = [mpf(0) for k in Dk]
+        Dk = [mpf(k) for k in Dk]
     
     X = [mpf(k) for k in Xq]
     g = mpf(gprefactor) #mpf(Xq[0])
@@ -133,43 +134,43 @@ def generate_qfi_list_theor2(wc, wa, Xq, Tlist, Dmin=0, Dplu=0, Dk=0, gprefactor
     wa = mpf(wa)
     T = [mpf(k) for k in Tlist]
     num=len(Tlist)
-    QFIlist1 = np.empty([num],dtype=object)
-    QFIlist2 = np.empty([num],dtype=object)
-    QFIlist3 = np.empty([num],dtype=object)
     QFI = np.empty([num],dtype=object)
+    
     for t in range(len(T)):
-        # per-q lists in mpf
-        e1 = []
-        e2 = []
-        e3 = []
-        ch = []
-        sc = []
-        th = []
-        arg = []
+        Oindicatorbrightlist = [math.floor(Ocutoff + wa/2 + gprefactor**2 *X[q]+1) for q in range(M)]
+        indicatordark =  Ocutoff
         beta = 1/T[t]
-        nmexp = []
-        temp = []
-        thing=[]
-        for k in range(N-M):
-            thing_k = (p*wa/mpf(2)+Dk[k])
-            nmexp_k = mpmath.exp(-beta*thing_k)
-            thing.append(thing_k); nmexp.append(nmexp_k)
+        
+        gamD = [] #indep of q
+        exgamD = [] #indep of q
+        
+        gamB = np.empty([M,max(Oindicatorbrightlist)+1],dtype=object)  #q,n both hmm
+        GamB = np.empty([M,max(Oindicatorbrightlist)+1],dtype=object)
+        exgamB = np.empty([M,max(Oindicatorbrightlist)+1],dtype=object)
+        
+        CoshGamB = np.empty([M,max(Oindicatorbrightlist)+1],dtype=object)
+        TanhGamB = np.empty([M,max(Oindicatorbrightlist)+1],dtype=object)
+        #darkstates
+        for h in range(indicatordark):
+            gamD_h = mpf(-1)*(mpf(h)*wf + wa*p*mpf(0.5))
+            exgamD_h = mpmath.exp(beta*gamD_h)
+            gamD.append(gamD_h); exgamD.append(exgamD_h)
+        #brightbits
         for q in range(M):
-            e1_q = mpmath.exp((g*g)*X[q] * beta / wf)              # exp1
-            e2_q = mpmath.exp(-1*mpf(2)*(g*g)*X[q] / (wf*wf))             # exp2
-            e3_q = mpmath.exp(-beta/mpf(2) * Dplu[q])
-            arg_q  = ((wa +Dmin[q])* beta / mpf(2)) * e2_q
-            ch_q = mpmath.cosh(arg_q)
-            th_q = mpmath.tanh(arg_q)
-            e1.append(e1_q); e2.append(e2_q); ch.append(ch_q); th.append(th_q); sc.append(1/ch_q); e3.append(e3_q)
-        Z = sum(nmexp[k] for k in range(N-M)) + mpf(2)*sum(e1[q]*e3[q]*ch[q] for q in range(M))
-        S1 = mpf(1/2) * ( sum(((wa+Dmin[q])**mpf(2)) * e1[q] * (e2[q]**mpf(2)) * e3[q] * sc[q] for q in range(M)) ) 
-        S2 =   sum(thing[k]*thing[k] * nmexp[k] for k in range(N-M))  + mpf(2) * sum( e1[q]*e3[q]*ch[q] * mpmath.power((g*g)*X[q]/wf - mpf(0.5)*Dplu[q] + mpf(0.5)*(wa+Dmin[q])*e2[q]*th[q], 2)  for q in range(M) )
-        S3 =  -mpf(1) * sum(thing[k] * nmexp[k] for k in range(N-M))  + mpf(2)*sum( e1[q]*e3[q]*ch[q] * ( (g*g)*X[q]/wf - mpf(0.5)*Dplu[q] + mpf(0.5)*(wa+Dmin[q])*e2[q]*th[q] )  for q in range(M) ) 
-        QFIlist1[t] = S1/Z
-        QFIlist2[t] = S2/Z
-        QFIlist3[t] = -(S3*S3)/(Z*Z)
-        QFI[t] = float( (QFIlist1[t] + QFIlist2[t] + QFIlist3[t])/(mpmath.power(T[t],4)) )
+            for h in range(Oindicatorbrightlist[q]+1):
+                gamB[q,h] = g*g*X[q]/wf - Dplu[q]*mpf(0.5) - wf*mpf(h)
+                GamB[q,h] = mpf(0.5)*(wa+Dmin[q])*mpmath.exp(mpf(-2)*g*g*X[q]/(wf*wf))*mpf(laguerrelist[h](float(4*g*g*X[q]/(wf*wf))))
+                exgamB[q,h] = mpmath.exp(beta*gamB[q,h])
+                CoshGamB[q,h] = mpmath.cosh(beta*GamB[q,h])
+                TanhGamB[q,h] = mpmath.tanh(beta*GamB[q,h])
+        Z = mpf(N-M)*sum(exgamD[h] for h in range(Ocutoff)) + mpf(2)*sum(sum(exgamB[k,h]*CoshGamB[k,h] for h in range(Oindicatorbrightlist[k])) for k in range(M))
+        S1 = mpf(2)*sum(sum(exgamB[k,h] * GamB[k,h] * GamB[k,h] / CoshGamB[k,h] for h in range(Oindicatorbrightlist[k])) for k in range(M))
+        S2 = mpf(N-M)*sum(gamD[h]*gamD[h]*exgamD[h] for h in range(Ocutoff)) + mpf(2)*sum(sum(exgamB[k,h]*CoshGamB[k,h]*mpmath.power(gamB[k,h]+GamB[k,h]*TanhGamB[k,h],2) for h in range(Oindicatorbrightlist[k])) for k in range(M))
+        S3 = mpf(N-M)*sum(gamD[h]*exgamD[h] for h in range(Ocutoff)) + mpf(2)*sum(sum(exgamB[k,h]*CoshGamB[k,h]*(gamB[k,h]+GamB[k,h]*TanhGamB[k,h]) for h in range(Oindicatorbrightlist[k])) for k in range(M))
+        QFI1 = S1/Z
+        QFI2 = S2/Z
+        QFI3 = -(S3*S3)/(Z*Z)
+        QFI[t] = float( (QFI1 + QFI2 + QFI3)/(mpmath.power(T[t],4)) )
     return QFI
 
 def logsumexp_mp(xs):
