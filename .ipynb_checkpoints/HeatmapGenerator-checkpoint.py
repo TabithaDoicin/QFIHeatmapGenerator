@@ -25,9 +25,9 @@ wa = 0.4
 ep1=0.25
 ep2=0.25
 
-minT=1e-7
-maxT=1e3
-numT=200
+minT=1e-3
+maxT=1e0
+numT=1000
 Tlist = np.geomspace(minT, maxT, numT)
 
 gprefactor=0.8 * 1/(np.sqrt(1000))
