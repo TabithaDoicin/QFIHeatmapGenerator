@@ -25,14 +25,14 @@ wa = 0.4
 ep1=0.25
 ep2=0.25
 
-minT=1e-3
+minT=1e-4
 maxT=1e0
 numT=1000
 Tlist = np.geomspace(minT, maxT, numT)
 
-gprefactor=0.8 * 1/(np.sqrt(1000))
+gprefactor=0.75 * 1/(np.sqrt(1000))
 
-totallines=100
+totallines=1250
 totalsets=8
 workers=8
 
