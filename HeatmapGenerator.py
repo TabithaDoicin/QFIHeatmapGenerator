@@ -25,12 +25,12 @@ def ExpectedSVal(Dg,De):
     M = np.min([Dg,De])
     N = np.max([Dg,De])
     
-    k = mpc(79.6595)
-    theta = mpc(0.101037)
-    alpha = mpc(9.81961)
+    k = 79.6595
+    theta = 0.101037
+    alpha = 9.81961
     
-    mu = mpc(mufunc(N,M))
-    sigma = mpc(sigmafunc(N,M))
+    mu = mufunc(N,M)
+    sigma = sigmafunc(N,M)
     
     j = 1/theta*(mu/sigma-alpha)
     val1 = np.sqrt(sigma*theta)
