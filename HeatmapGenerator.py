@@ -20,7 +20,7 @@ De=1000
 M = np.min([Dg,De])
 N = np.max([Dg,De])
 wc = 1
-wa = 0.4
+wa = 0.25
 
 ep1=0.25
 ep2=0.25
@@ -30,14 +30,14 @@ maxT=1e0
 numT=1000
 Tlist = np.geomspace(minT, maxT, numT)
 
-gprefactor=0.75 * 1/(np.sqrt(1000))
+gprefactor=0.6 * 1/(np.sqrt(1000))
 
-totallines=1250
+totallines=50
 totalsets=8
 workers=8
 
 theta = 5
-Individuallynormalised = False
+Individuallynormalised = True
 print('g = ' + str(gprefactor))
 print('thetacutoff = ' + str(theta))
 
