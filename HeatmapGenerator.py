@@ -15,34 +15,31 @@ import math
 
 mp.dps = 50
 
-Dg=1
-De=100
+Dg=10
+De=1000
 M = np.min([Dg,De])
 N = np.max([Dg,De])
 wc = 1
 wa = 0.25
 
-ep1=0.2
-ep2=0.2
+ep1=0.25
+ep2=0.25
 
 minT=1e-7
 maxT=1e3
 numT=200
 Tlist = np.geomspace(minT, maxT, numT)
 
-gprefactor=0.8 * 1/(np.sqrt(100))
+gprefactor=0.8 * 1/(np.sqrt(1000))
 
-totallines=1250
+totallines=10
 totalsets=8
 workers=8
 
-
-
-method = 'oscillatorordered' #'energyordered' or 'oscillatorordered'
-theta = 1
+theta = 5
 Individuallynormalised = False
 print('g = ' + str(gprefactor))
-print('method = ' + method)
+print('thetacutoff = ' + str(theta))
 
 def mode_eigs_wishart(Dg, De, normalised, beta=2, c=1.0):
     M = np.min([Dg,De])
@@ -102,75 +99,154 @@ def AA_energies_uptodark(wc,wa,Xq,O,Dg,De,Dmin,Dplu,Dk,geff=1, ordered = False):
         evals = evalsB+evalsD
         return evals
         
-def generate_qfi_list_theor2(wc, wa, Xq, Tlist, Dg, De, Dmin=0, Dplu=0, Dk=0, gprefactor=1, Ocutoff = 0):
-    laguerrelist = [sp.special.laguerre(n,False) for n in range(math.floor(Ocutoff+gprefactor**2+2))]
-    M = int(np.min([Dg,De]))
-    N = int(np.max([Dg,De]))
-    if Dg>De:
-        p=mpf(-1)
-    elif De>Dg:
-        p=mpf(1)
+def generate_qfi_list_theor3_fast(wc, wa, Xq, Tlist, Dg, De,
+                                  Dmin=0, Dplu=0, Dk=0,
+                                  gprefactor=1, Ocutoff=0):
+    # --- Laguerre polynomials (same as before, but reused) ---
+    max_n = math.floor(Ocutoff + gprefactor**2 + 100)
+    laguerrelist = [sp.special.laguerre(n, False) for n in range(max_n)]
+
+    # --- basic dims / sign ---
+    M = int(np.min([Dg, De]))
+    N = int(np.max([Dg, De]))
+
+    if Dg > De:
+        p = mpf(-1)
+    elif De > Dg:
+        p = mpf(1)
     else:
-        p=mpf(0)
-        
-    if Dmin==0:
-        Dmin = [mpf(0) for k in range(M)]
+        p = mpf(0)
+
+    # --- parameters as mpf lists ---
+    if Dmin == 0:
+        Dmin = [mpf(0) for _ in range(M)]
     else:
         Dmin = [mpf(k) for k in Dmin]
-        
-    if Dplu==0:
-        Dplu = [mpf(0) for k in range(M)]
+
+    if Dplu == 0:
+        Dplu = [mpf(0) for _ in range(M)]
     else:
         Dplu = [mpf(k) for k in Dplu]
-        
-    if Dk==0:
-        Dk = [mpf(0) for k in range(N-M)]
+
+    if Dk == 0:
+        Dk = [mpf(0) for _ in range(N - M)]
     else:
         Dk = [mpf(k) for k in Dk]
-    
+
     X = [mpf(k) for k in Xq]
-    g = mpf(gprefactor) #mpf(Xq[0])
+    g = mpf(gprefactor)
     wf = mpf(wc)
     wa = mpf(wa)
     T = [mpf(k) for k in Tlist]
-    num=len(Tlist)
-    QFI = np.empty([num],dtype=object)
-    
-    for t in range(len(T)):
-        Oindicatorbrightlist = [math.floor(Ocutoff + wa/2 + gprefactor**2 *X[q]+1) for q in range(M)]
-        indicatordark =  Ocutoff
-        beta = 1/T[t]
-        
-        gamD = [] #indep of q
-        exgamD = [] #indep of q
-        
-        gamB = np.empty([M,max(Oindicatorbrightlist)+1],dtype=object)  #q,n both hmm
-        GamB = np.empty([M,max(Oindicatorbrightlist)+1],dtype=object)
-        exgamB = np.empty([M,max(Oindicatorbrightlist)+1],dtype=object)
-        
-        CoshGamB = np.empty([M,max(Oindicatorbrightlist)+1],dtype=object)
-        TanhGamB = np.empty([M,max(Oindicatorbrightlist)+1],dtype=object)
-        #darkstates
-        for h in range(indicatordark):
-            gamD_h = mpf(-1)*(mpf(h)*wf + wa*p*mpf(0.5))
-            exgamD_h = mpmath.exp(beta*gamD_h)
-            gamD.append(gamD_h); exgamD.append(exgamD_h)
-        #brightbits
+    num = len(Tlist)
+    QFI = np.empty(num, dtype=float)
+
+    # --- indices / cutoffs ---
+    Ocutoff_int = int(Ocutoff)
+
+    # depends only on X, wc, wa, gprefactor, Ocutoff; NOT on T
+    Oindicatorbrightlist = [
+        int(mp.floor(mpf(Ocutoff_int) + wa/2 + (gprefactor**2) * X[q] + 1))
+        for q in range(M)
+    ]
+    maxO = max(Oindicatorbrightlist) + 1
+
+    # --- dark-state energy levels: independent of T ---
+    gamD = [-(mpf(h)*wf + wa*p*mpf(0.5)) for h in range(Ocutoff_int)]
+
+    # --- bright-state gammas: independent of T ---
+    gamB = [[mpf(0)] * maxO for _ in range(M)]
+    GamB = [[mpf(0)] * maxO for _ in range(M)]
+
+    for q in range(M):
+        # SciPy Laguerre works in float, so we evaluate once per (q,h) and then promote to mpf
+        x_arg = float(4 * g * g * X[q] / (wf * wf))
+        pref = mpf(0.5) * (wa + Dmin[q]) * mp.exp(-2 * g * g * X[q] / (wf * wf))
+        g_const = g * g * X[q] / wf - Dplu[q] * mpf(0.5)
+
+        for h in range(Oindicatorbrightlist[q] + 1):
+            gamB[q][h] = g_const - wf * mpf(h)
+            GamB[q][h] = pref * mpf(laguerrelist[h](x_arg))
+
+    NminusM = mpf(N - M)
+    two = mpf(2)
+
+    # --- loop over temperatures ---
+    for t, Tt in enumerate(T):
+        beta = 1 / Tt
+
+        # dark: exp(beta * gamD)
+        exgamD = [mp.exp(beta * gd) for gd in gamD]
+
+        # bright: exp / cosh / tanh for beta*GamB, beta*gamB
+        exgamB = [[mpf(0)] * maxO for _ in range(M)]
+        coshGamB = [[mpf(0)] * maxO for _ in range(M)]
+        tanhGamB = [[mpf(0)] * maxO for _ in range(M)]
+
         for q in range(M):
-            for h in range(Oindicatorbrightlist[q]+1):
-                gamB[q,h] = g*g*X[q]/wf - Dplu[q]*mpf(0.5) - wf*mpf(h)
-                GamB[q,h] = mpf(0.5)*(wa+Dmin[q])*mpmath.exp(mpf(-2)*g*g*X[q]/(wf*wf))*mpf(laguerrelist[h](float(4*g*g*X[q]/(wf*wf))))
-                exgamB[q,h] = mpmath.exp(beta*gamB[q,h])
-                CoshGamB[q,h] = mpmath.cosh(beta*GamB[q,h])
-                TanhGamB[q,h] = mpmath.tanh(beta*GamB[q,h])
-        Z = mpf(N-M)*sum(exgamD[h] for h in range(Ocutoff)) + mpf(2)*sum(sum(exgamB[k,h]*CoshGamB[k,h] for h in range(Oindicatorbrightlist[k])) for k in range(M))
-        S1 = mpf(2)*sum(sum(exgamB[k,h] * GamB[k,h] * GamB[k,h] / CoshGamB[k,h] for h in range(Oindicatorbrightlist[k])) for k in range(M))
-        S2 = mpf(N-M)*sum(gamD[h]*gamD[h]*exgamD[h] for h in range(Ocutoff)) + mpf(2)*sum(sum(exgamB[k,h]*CoshGamB[k,h]*mpmath.power(gamB[k,h]+GamB[k,h]*TanhGamB[k,h],2) for h in range(Oindicatorbrightlist[k])) for k in range(M))
-        S3 = mpf(N-M)*sum(gamD[h]*exgamD[h] for h in range(Ocutoff)) + mpf(2)*sum(sum(exgamB[k,h]*CoshGamB[k,h]*(gamB[k,h]+GamB[k,h]*TanhGamB[k,h]) for h in range(Oindicatorbrightlist[k])) for k in range(M))
-        QFI1 = S1/Z
-        QFI2 = S2/Z
-        QFI3 = -(S3*S3)/(Z*Z)
-        QFI[t] = float( (QFI1 + QFI2 + QFI3)/(mpmath.power(T[t],4)) )
+            for h in range(Oindicatorbrightlist[q] + 1):
+                b = beta * gamB[q][h]
+                G = beta * GamB[q][h]
+                e = mp.exp(b)
+                c = mp.cosh(G)
+                exgamB[q][h] = e
+                coshGamB[q][h] = c
+                tanhGamB[q][h] = mp.tanh(G)
+
+        # -------- Z --------
+        Z_dark = NminusM * mp.fsum(exgamD)
+        Z_bright = two * mp.fsum(
+            mp.fsum(exgamB[q][h] * coshGamB[q][h]
+                    for h in range(Oindicatorbrightlist[q]))
+            for q in range(M)
+        )
+        Z = Z_dark + Z_bright
+
+        # -------- S1 --------
+        S1 = two * mp.fsum(
+            mp.fsum(
+                exgamB[q][h] * GamB[q][h] * GamB[q][h] / coshGamB[q][h]
+                for h in range(Oindicatorbrightlist[q])
+            )
+            for q in range(M)
+        )
+
+        # -------- S2 --------
+        S2_dark = NminusM * mp.fsum(
+            gamD[h] * gamD[h] * exgamD[h] for h in range(Ocutoff_int)
+        )
+
+        S2_bright_terms = []
+        for q in range(M):
+            for h in range(Oindicatorbrightlist[q]):
+                tmp = gamB[q][h] + GamB[q][h] * tanhGamB[q][h]
+                S2_bright_terms.append(
+                    exgamB[q][h] * coshGamB[q][h] * (tmp * tmp)
+                )
+        S2_bright = two * mp.fsum(S2_bright_terms)
+        S2 = S2_dark + S2_bright
+
+        # -------- S3 --------
+        S3_dark = NminusM * mp.fsum(
+            gamD[h] * exgamD[h] for h in range(Ocutoff_int)
+        )
+        S3_bright_terms = []
+        for q in range(M):
+            for h in range(Oindicatorbrightlist[q]):
+                tmp = gamB[q][h] + GamB[q][h] * tanhGamB[q][h]
+                S3_bright_terms.append(
+                    exgamB[q][h] * coshGamB[q][h] * tmp
+                )
+        S3_bright = two * mp.fsum(S3_bright_terms)
+        S3 = S3_dark + S3_bright
+
+        QFI1 = S1 / Z
+        QFI2 = S2 / Z
+        QFI3 = -(S3 * S3) / (Z * Z)
+
+        # still only convert to float at the very end
+        QFI[t] = float((QFI1 + QFI2 + QFI3) / (Tt * Tt * Tt * Tt))
+
     return QFI
 
 def logsumexp_mp(xs):
@@ -232,7 +308,6 @@ def generate_detunings(ep1,ep2,wa,Dg,De,Cmat):
 
 def generate_subdataframe(totallines):
     df_parts = []
-    elist_parts = []
     for i in range(totallines):
         print('Progress: '+str(i/totallines))
         Cmat=CmatRandomAF(Dg,De,Individuallynormalised)
@@ -245,19 +320,13 @@ def generate_subdataframe(totallines):
         elif M>1:
             Xqratio = [Xq[1]/Xq[0] for k in range(numT)]
         Dmin, Dplu, Dk = generate_detunings(ep1, ep2, wa, Dg, De, Cmat)
-        if method == 'oscillatorordered':
-            energylist = AA_energies_uptodark(wc, wa, Xq, 1, Dg, De, Dmin, Dplu, Dk, geff=gprefactor, ordered = False)
-            qfi_values = generate_qfi_list_theor2(wc, wa, Xq, Tlist, Dmin, Dplu, Dk, gprefactor)
-        elif method == 'energyordered':
-            energylist = AA_energies_uptodark(wc, wa, Xq, theta, Dg, De, Dmin, Dplu, Dk, geff=gprefactor, ordered = False)
-            qfi_values = generate_qfi_list_fromE(energylist, Tlist)
-        else:
-            raise ValueError('what? please set a valid method')
-        line_df = pd.DataFrame({"Temp": Tlist, "QFI": qfi_values, "Xqratio": Xqratio})#, "Xq":Xq_list, "Seperation":sep_list})
+        
+        qfi_values = generate_qfi_list_theor3_fast(wc, wa, Xq, Tlist, Dmin, Dplu, Dk, gprefactor,theta)
+        
+        line_df = pd.DataFrame({"Temp": Tlist, "QFI": qfi_values})#, "Xqratio": Xqratio})#, "Xq":Xq_list, "Seperation":sep_list})
         df_parts.append(line_df)
-        df_parts.append(pd.DataFrame({"Temp": [np.nan], "QFI": [np.nan], "Xqratio": [np.nan]}))  # separator row
-        elist_parts = elist_parts+energylist
-    return pd.concat(df_parts, ignore_index=True), elist_parts
+        df_parts.append(pd.DataFrame({"Temp": [np.nan], "QFI": [np.nan]}))#, "Xqratio": [np.nan]}))  # separator row
+    return pd.concat(df_parts, ignore_index=True)
 
 def populate_dataframes_parallel_cpu(totallines, totalsets):
     bigset = []
@@ -265,28 +334,25 @@ def populate_dataframes_parallel_cpu(totallines, totalsets):
     with ProcessPoolExecutor(max_workers=workers) as ex:
         futures = [ex.submit(generate_subdataframe, totallines) for _ in range(totalsets)]
         for fut in as_completed(futures):
-            dfs, es = fut.result()
+            dfs = fut.result()
             bigset.append(dfs)
-            energies = energies + es
-    return bigset, energies
+    return bigset
 
 def averageqfi():
     Xq = mode_eigs_wishart(Dg, De, Individuallynormalised)
     svddiagonals = [x**0.5 for x in Xq]
-    avgqfi = generate_qfi_list_theor2(wc, wa, Xq, Tlist, Dmin=0, Dplu=0, Dk=0, gprefactor=gprefactor)
+    avgqfi = generate_qfi_list_theor3_fast(wc, wa, Xq, Tlist, Dmin=0, Dplu=0, Dk=0, gprefactor=gprefactor,theta)
     return avgqfi
 
 def main():
     print(mp)
     print("Creating dataframe...")
-    bigset, energies = populate_dataframes_parallel_cpu(totallines, totalsets)
+    bigset = populate_dataframes_parallel_cpu(totallines, totalsets)
     qfidf = pd.concat(bigset, ignore_index=True)
     qfidf.to_csv('qfidataframe.csv', index=False)
     print('done biggy one :)')
     print('Starting average one...')
     avgqfi = averageqfi()
-    with Path("energies.pkl").open("wb") as f:
-        pickle.dump(energies, f, protocol=pickle.HIGHEST_PROTOCOL)
     with Path("avgqfi.pkl").open("wb") as f:
         pickle.dump(avgqfi, f, protocol=pickle.HIGHEST_PROTOCOL)
     with Path("tlist.pkl").open("wb") as f:
