@@ -341,7 +341,7 @@ def populate_dataframes_parallel_cpu(totallines, totalsets):
 def averageqfi():
     Xq = mode_eigs_wishart(Dg, De, Individuallynormalised)
     svddiagonals = [x**0.5 for x in Xq]
-    avgqfi = generate_qfi_list_theor3_fast(wc, wa, Xq, Tlist, Dg,De,Dmin=0, Dplu=0, Dk=0, gprefactor=gprefactor,theta=theta)
+    avgqfi = generate_qfi_list_theor3_fast(wc, wa, Xq, Tlist, Dg,De,Dmin=0, Dplu=0, Dk=0, gprefactor=gprefactor,Ocutoff=theta)
     return avgqfi
 
 def main():
