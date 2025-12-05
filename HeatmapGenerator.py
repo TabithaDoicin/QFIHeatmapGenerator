@@ -321,7 +321,7 @@ def generate_subdataframe(totallines):
             Xqratio = [Xq[1]/Xq[0] for k in range(numT)]
         Dmin, Dplu, Dk = generate_detunings(ep1, ep2, wa, Dg, De, Cmat)
         
-        qfi_values = generate_qfi_list_theor3_fast(wc, wa, Xq, Tlist, Dmin, Dplu, Dk, gprefactor,theta=theta)
+        qfi_values = generate_qfi_list_theor3_fast(wc, wa, Xq, Tlist, Dmin, Dplu, Dk, gprefactor,theta)
         
         line_df = pd.DataFrame({"Temp": Tlist, "QFI": qfi_values})#, "Xqratio": Xqratio})#, "Xq":Xq_list, "Seperation":sep_list})
         df_parts.append(line_df)
@@ -341,7 +341,7 @@ def populate_dataframes_parallel_cpu(totallines, totalsets):
 def averageqfi():
     Xq = mode_eigs_wishart(Dg, De, Individuallynormalised)
     svddiagonals = [x**0.5 for x in Xq]
-    avgqfi = generate_qfi_list_theor3_fast(wc, wa, Xq, Tlist, Dmin=0, Dplu=0, Dk=0, gprefactor=gprefactor,theta=theta)
+    avgqfi = generate_qfi_list_theor3_fast(wc, wa, Xq, Tlist, Dmin=0, Dplu=0, Dk=0, gprefactor=gprefactor,theta)
     return avgqfi
 
 def main():
