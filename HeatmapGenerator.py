@@ -1,5 +1,6 @@
 from mpmath import mpf
 from mpmath import mp
+from mpmath import mpc
 import mpmath
 import sys as s
 import numpy as np
@@ -30,16 +31,45 @@ maxT=1e0
 numT=1000
 Tlist = np.geomspace(minT, maxT, numT)
 
-gprefactor=0.6 * 1/(np.sqrt(1000))
+gprefactor=1.2 * 1/ExpectedSVal(Dg,De)
 
 totallines=50
 totalsets=8
 workers=8
 
 theta = 5
-Individuallynormalised = True
+Individuallynormalised = False
 print('g = ' + str(gprefactor))
 print('thetacutoff = ' + str(theta))
+
+
+def ExpectedSVal(Dg,De):
+    def mufunc(N,M,a1=0,a2=0):
+        val = (np.sqrt(N+a1)+np.sqrt(M+a2))**2
+        return val
+    def sigmafunc(N,M,a1=0,a2=0):
+        val = np.sqrt(mufunc(N,M,a1,a2))*(1/np.sqrt(N+a1)+1/np.sqrt(M+a2))**(1/3)
+        return val
+
+    M = np.min([Dg,De])
+    N = np.max([Dg,De])
+    
+    k = mpc(79.6595)
+    theta = mpc(0.101037)
+    alpha = mpc(9.81961)
+    
+    mu = mpc(mufunc(N,M))
+    sigma = mpc(sigmafunc(N,M))
+    
+    j = 1/theta*(mu/sigma-alpha)
+    val1 = np.sqrt(sigma*theta)
+    val2 = mpc(j,0)**(mpc(k,0)+mpc(1/2,0)) 
+    val3 = mpmath.hyperu(k,3/2+k,j)
+    val = val1*val2*val3
+    
+    return float(val.real)
+
+
 
 def mode_eigs_wishart(Dg, De, normalised, beta=2, c=1.0):
     M = np.min([Dg,De])
