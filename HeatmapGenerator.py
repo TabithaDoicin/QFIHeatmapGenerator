@@ -268,7 +268,7 @@ def generate_qfi_list_theor3_fast(wc, wa, Xq, Tlist, Dg, De,
         S3_bright = two * mp.fsum(S3_bright_terms)
         S3 = S3_dark + S3_bright
 
-        QFI1 = S1 / Z
+        QFI1 = 0#S1 / Z
         QFI2 = S2 / Z
         QFI3 = -(S3 * S3) / (Z * Z)
 
