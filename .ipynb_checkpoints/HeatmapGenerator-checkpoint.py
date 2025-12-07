@@ -625,7 +625,7 @@ def darkbrightsector():
     darkbrightqfi = generate_qfi_list_darkpeak_fast(wc, wa, Xq, Tlist, Dg,De,Dmin=0, Dplu=0, Dk=0, gprefactor=gprefactor,Ocutoff=theta)
     return darkbrightqfi
 
-def brightbrightbrightsector():
+def brightbrightsector():
     Xq = mode_eigs_wishart(Dg, De, Individuallynormalised)
     svddiagonals = [x**0.5 for x in Xq]
     darkbrightqfi = generate_qfi_list_brightpeak_fast(wc, wa, Xq, Tlist, Dg,De,Dmin=0, Dplu=0, Dk=0, gprefactor=gprefactor,Ocutoff=theta)
