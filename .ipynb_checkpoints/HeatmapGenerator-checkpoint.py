@@ -59,7 +59,7 @@ Tlist = np.geomspace(minT, maxT, numT)
 
 gprefactor=1.5 * 1/ExpectedSVal(Dg,De)
 
-totallines=50
+totallines=1250
 totalsets=8
 workers=8
 
@@ -276,6 +276,253 @@ def generate_qfi_list_theor3_fast(wc, wa, Xq, Tlist, Dg, De,
 
     return QFI
 
+def generate_qfi_list_darkpeak_fast(
+    wc, wa, Xq, Tlist, Dg, De,
+    Dmin=0, Dplu=0, Dk=0, gprefactor=1, Ocutoff=0
+):
+    # ----- setup -----
+    # precompute max Laguerre index we actually need
+    max_n = math.floor(Ocutoff + gprefactor**2 + 500)
+    # we'll use eval_laguerre instead of building polynomial objects
+
+    M = int(min(Dg, De))
+    N = int(max(Dg, De))
+
+    if Dg > De:
+        p = mpf(-1)
+    elif De > Dg:
+        p = mpf(1)
+    else:
+        p = mpf(0)
+
+    if Dmin == 0:
+        Dmin = [mpf(0) for _ in range(M)]
+    else:
+        Dmin = [mpf(k) for k in Dmin]
+
+    if Dplu == 0:
+        Dplu = [mpf(0) for _ in range(M)]
+    else:
+        Dplu = [mpf(k) for k in Dplu]
+
+    if Dk == 0:
+        Dk = [mpf(0) for _ in range(N - M)]
+    else:
+        Dk = [mpf(k) for k in Dk]
+
+    X  = [mpf(k) for k in Xq]
+    g  = mpf(gprefactor)
+    wf = mpf(wc)
+    wa = mpf(wa)
+
+    Tlist = [mpf(k) for k in Tlist]
+    numT  = len(Tlist)
+
+    # --------- T-independent precomputation ---------
+
+    Oindicatorbrightlist = [
+        math.floor(Ocutoff + wa/2 + g**2 * X[q] + 1) for q in range(M)
+    ]
+    indicatordark = Ocutoff
+
+    # dark gammas (T-independent part)
+    gamD = [
+        - (mpf(h) * wf + wa * p * mpf('0.5'))
+        for h in range(indicatordark)
+    ]
+
+    # bright gammas
+    gamB  = []  # list of lists: gamB[q][h]
+    GamB  = []  # list of lists: GamB[q][h]
+
+    for q in range(M):
+        Oq = Oindicatorbrightlist[q]
+        gamB_q = [None] * (Oq + 1)
+        GamB_q = [None] * (Oq + 1)
+
+        Xq_mpf      = X[q]
+        const_gamB  = g*g*Xq_mpf / wf - Dplu[q] * mpf('0.5')
+        const_GamB  = mpf('0.5') * (wa + Dmin[q]) * mp.e**(-2 * g*g*Xq_mpf / (wf*wf))
+        x_laguerre  = float(4 * g*g*Xq_mpf / (wf*wf))  # SciPy wants float
+
+        for h in range(Oq + 1):
+            gamB_q[h] = const_gamB - wf * mpf(h)
+            # use eval_laguerre instead of polynomial objects
+            L_n = spsp.eval_laguerre(h, x_laguerre)
+            GamB_q[h] = const_GamB * mpf(L_n)
+
+        gamB.append(gamB_q)
+        GamB.append(GamB_q)
+
+    # --------- main loop over T ---------
+    QFI = [None] * numT
+
+    for t_idx, T in enumerate(Tlist):
+        beta = 1 / T
+
+        # dark sector, T-dependent exponentials
+        exgamD = [mp.e**(beta * gD) for gD in gamD]
+
+        ZD  = mpf(N - M) * sum(exgamD)
+        S2D = mpf(N - M) * sum(gD*gD * e for gD, e in zip(gamD, exgamD))
+        S3D = mpf(N - M) * sum(gD * e   for gD, e in zip(gamD, exgamD))
+
+        # bright sector
+        ZB  = mpf('0.0')
+        S2B = mpf('0.0')
+        S3B = mpf('0.0')
+
+        for q in range(M):
+            Oq     = Oindicatorbrightlist[q]
+            gamB_q = gamB[q]
+            GamB_q = GamB[q]
+
+            for h in range(Oq):  # note: your original code uses range(Oindicatorbrightlist[k]) for sums
+                gB  = gamB_q[h]
+                GB  = GamB_q[h]
+
+                exg = mp.e**(beta * gB)
+                c   = mp.cosh(beta * GB)
+                th  = mp.tanh(beta * GB)
+
+                v   = gB + GB * th
+
+                ZB  += 2 * exg * c
+                S2B += 2 * exg * c * (v**2)
+                S3B += 2 * exg * c * v
+
+        Z  = ZD + ZB
+        p1 = (S2B * ZD) / (Z*Z)
+        p2 = (S2D * ZB) / (Z*Z)
+        p3 = -2 * (S3B * S3D) / (Z*Z)
+
+        QFI[t_idx] = float((p1 + p2 + p3) / (T**4))
+
+    return QFI
+
+def generate_qfi_list_brightpeak_fast(
+    wc, wa, Xq, Tlist, Dg, De,
+    Dmin=0, Dplu=0, Dk=0, gprefactor=1, Ocutoff=0
+):
+    # ----- setup -----
+    # precompute max Laguerre index we actually need
+    max_n = math.floor(Ocutoff + gprefactor**2 + 500)
+    # we'll use eval_laguerre instead of building polynomial objects
+
+    M = int(min(Dg, De))
+    N = int(max(Dg, De))
+
+    if Dg > De:
+        p = mpf(-1)
+    elif De > Dg:
+        p = mpf(1)
+    else:
+        p = mpf(0)
+
+    if Dmin == 0:
+        Dmin = [mpf(0) for _ in range(M)]
+    else:
+        Dmin = [mpf(k) for k in Dmin]
+
+    if Dplu == 0:
+        Dplu = [mpf(0) for _ in range(M)]
+    else:
+        Dplu = [mpf(k) for k in Dplu]
+
+    if Dk == 0:
+        Dk = [mpf(0) for _ in range(N - M)]
+    else:
+        Dk = [mpf(k) for k in Dk]
+
+    X  = [mpf(k) for k in Xq]
+    g  = mpf(gprefactor)
+    wf = mpf(wc)
+    wa = mpf(wa)
+
+    Tlist = [mpf(k) for k in Tlist]
+    numT  = len(Tlist)
+
+    # --------- T-independent precomputation ---------
+
+    Oindicatorbrightlist = [
+        math.floor(Ocutoff + wa/2 + g**2 * X[q] + 1) for q in range(M)
+    ]
+    indicatordark = Ocutoff
+
+    # dark gammas (T-independent part)
+    gamD = [
+        - (mpf(h) * wf + wa * p * mpf('0.5'))
+        for h in range(indicatordark)
+    ]
+
+    # bright gammas
+    gamB  = []  # list of lists: gamB[q][h]
+    GamB  = []  # list of lists: GamB[q][h]
+
+    for q in range(M):
+        Oq = Oindicatorbrightlist[q]
+        gamB_q = [None] * (Oq + 1)
+        GamB_q = [None] * (Oq + 1)
+
+        Xq_mpf      = X[q]
+        const_gamB  = g*g*Xq_mpf / wf - Dplu[q] * mpf('0.5')
+        const_GamB  = mpf('0.5') * (wa + Dmin[q]) * mp.e**(-2 * g*g*Xq_mpf / (wf*wf))
+        x_laguerre  = float(4 * g*g*Xq_mpf / (wf*wf))  # SciPy wants float
+
+        for h in range(Oq + 1):
+            gamB_q[h] = const_gamB - wf * mpf(h)
+            # use eval_laguerre instead of polynomial objects
+            L_n = spsp.eval_laguerre(h, x_laguerre)
+            GamB_q[h] = const_GamB * mpf(L_n)
+
+        gamB.append(gamB_q)
+        GamB.append(GamB_q)
+
+    # --------- main loop over T ---------
+    QFI = [None] * numT
+
+    for t_idx, T in enumerate(Tlist):
+        beta = 1 / T
+
+        # dark sector, T-dependent exponentials
+        exgamD = [mp.e**(beta * gD) for gD in gamD]
+
+        ZD  = mpf(N - M) * sum(exgamD)
+        S2D = mpf(N - M) * sum(gD*gD * e for gD, e in zip(gamD, exgamD))
+        S3D = mpf(N - M) * sum(gD * e   for gD, e in zip(gamD, exgamD))
+
+        # bright sector
+        ZB  = mpf('0.0')
+        S2B = mpf('0.0')
+        S3B = mpf('0.0')
+
+        for q in range(M):
+            Oq     = Oindicatorbrightlist[q]
+            gamB_q = gamB[q]
+            GamB_q = GamB[q]
+
+            for h in range(Oq):  # note: your original code uses range(Oindicatorbrightlist[k]) for sums
+                gB  = gamB_q[h]
+                GB  = GamB_q[h]
+
+                exg = mp.e**(beta * gB)
+                c   = mp.cosh(beta * GB)
+                th  = mp.tanh(beta * GB)
+
+                v   = gB + GB * th
+
+                ZB  += 2 * exg * c
+                S2B += 2 * exg * c * (v**2)
+                S3B += 2 * exg * c * v
+
+        Z  = ZD + ZB
+        p1 = (S2B * ZB) / (Z*Z)
+        p2 = -(S3B * S3B) / (Z*Z)
+
+        QFI[t_idx] = float((p1 + p2) / (T**4))
+
+    return QFI
+
 def logsumexp_mp(xs):
     # xs: list of mp.mpf
     m = max(xs)
@@ -371,6 +618,18 @@ def averageqfi():
     avgqfi = generate_qfi_list_theor3_fast(wc, wa, Xq, Tlist, Dg,De,Dmin=0, Dplu=0, Dk=0, gprefactor=gprefactor,Ocutoff=theta)
     return avgqfi
 
+def darkbrightsector():
+    Xq = mode_eigs_wishart(Dg, De, Individuallynormalised)
+    svddiagonals = [x**0.5 for x in Xq]
+    darkbrightqfi = generate_qfi_list_darkpeak_fast(wc, wa, Xq, Tlist, Dg,De,Dmin=0, Dplu=0, Dk=0, gprefactor=gprefactor,Ocutoff=theta)
+    return darkbrightqfi
+
+def brightbrightbrightsector():
+    Xq = mode_eigs_wishart(Dg, De, Individuallynormalised)
+    svddiagonals = [x**0.5 for x in Xq]
+    darkbrightqfi = generate_qfi_list_brightpeak_fast(wc, wa, Xq, Tlist, Dg,De,Dmin=0, Dplu=0, Dk=0, gprefactor=gprefactor,Ocutoff=theta)
+    return brightbrightqfi
+
 def main():
     print(mp)
     print("Creating dataframe...")
@@ -380,8 +639,14 @@ def main():
     print('done biggy one :)')
     print('Starting average one...')
     avgqfi = averageqfi()
+    darkbrightqfi = darkbrightsector()
+    brightbrightqfi = brightbrightsector()
     with Path("avgqfi.pkl").open("wb") as f:
         pickle.dump(avgqfi, f, protocol=pickle.HIGHEST_PROTOCOL)
+    with Path("darkbrightqfi.pkl").open("wb") as f:
+        pickle.dump(darkbrightqfi, f, protocol=pickle.HIGHEST_PROTOCOL)
+    with Path("brightbrightqfi.pkl").open("wb") as f:
+        pickle.dump(brightbrightqfi, f, protocol=pickle.HIGHEST_PROTOCOL)
     with Path("tlist.pkl").open("wb") as f:
         pickle.dump(Tlist, f, protocol=pickle.HIGHEST_PROTOCOL)
     print('Finito!')
