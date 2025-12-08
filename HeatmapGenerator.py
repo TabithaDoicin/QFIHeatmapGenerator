@@ -43,8 +43,8 @@ def ExpectedSVal(Dg,De):
 
 mp.dps = 50
 
-Dg=120
-De=120
+Dg=20
+De=20
 M = np.min([Dg,De])
 N = np.max([Dg,De])
 wc = 1
@@ -54,17 +54,17 @@ ep1=0.25
 ep2=0.25
 
 minT=1e-4
-maxT=1e0
+maxT=1e1
 numT=1000
 Tlist = np.geomspace(minT, maxT, numT)
 
-gprefactor=0.8 * 1/ExpectedSVal(Dg,De)
+gprefactor=0.5 * 1/ExpectedSVal(Dg,De)
 
 totallines=1250
 totalsets=8
 workers=8
 
-theta = 5
+theta = 2
 Individuallynormalised = False
 print('g = ' + str(gprefactor))
 print('thetacutoff = ' + str(theta))
