@@ -60,7 +60,7 @@ Tlist = np.geomspace(minT, maxT, numT)
 
 gprefactor=0.5 * 1/ExpectedSVal(Dg,De)
 
-totallines=1250
+totallines=10
 totalsets=8
 workers=8
 
