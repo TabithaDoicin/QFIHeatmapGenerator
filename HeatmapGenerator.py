@@ -58,7 +58,7 @@ maxT=1e1
 numT=1000
 Tlist = np.geomspace(minT, maxT, numT)
 
-gprefactor=0.5 * 1/ExpectedSVal(Dg,De)
+gprefactor=1.2 * 1/ExpectedSVal(Dg,De)
 
 totallines=1250
 totalsets=8
