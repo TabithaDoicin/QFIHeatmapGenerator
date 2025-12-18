@@ -43,8 +43,8 @@ def ExpectedSVal(Dg,De):
 
 mp.dps = 50
 
-Dg=20
-De=20
+Dg=25
+De=25
 M = np.min([Dg,De])
 N = np.max([Dg,De])
 wc = 1
@@ -53,7 +53,7 @@ wa = 0.25
 ep1=0.25
 ep2=0.25
 
-minT=1e-4
+minT=0.5e-4
 maxT=1e1
 numT=1000
 Tlist = np.geomspace(minT, maxT, numT)
