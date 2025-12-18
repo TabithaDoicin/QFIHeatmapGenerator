@@ -43,8 +43,8 @@ def ExpectedSVal(Dg,De):
 
 mp.dps = 50
 
-Dg=25
-De=25
+Dg=250
+De=250
 M = np.min([Dg,De])
 N = np.max([Dg,De])
 wc = 1
