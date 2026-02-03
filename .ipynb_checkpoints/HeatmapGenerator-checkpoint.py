@@ -43,8 +43,8 @@ def ExpectedSVal(Dg,De):
 
 mp.dps = 25
 
-Dg=25
-De=25
+Dg=10
+De=1010
 M = np.min([Dg,De])
 N = np.max([Dg,De])
 wc = 1
@@ -58,7 +58,7 @@ maxT=1e1
 numT=1000
 Tlist = np.geomspace(minT, maxT, numT)
 
-gprefactor=1.2 * 1/ExpectedSVal(Dg,De)
+gprefactor=1.5 * 1/ExpectedSVal(Dg,De)
 
 totallines=1000
 totalsets=8
